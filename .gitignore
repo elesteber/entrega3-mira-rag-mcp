@@ -1,17 +1,89 @@
-# Entornos virtuales
+# ==============================================================================
+# Entornos virtuales de Python
+# ==============================================================================
 .venv/
 venv/
 env/
-# Python cache
+ENV/
+env.bak/
+venv.bak/
+
+# ==============================================================================
+# Caché y archivos compilados de Python
+# ==============================================================================
 __pycache__/
-*.pyc
-# Variables de entorno y secretos
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Herramientas de análisis y testing
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+test-results/
+
+# ==============================================================================
+# Secretos, credenciales y variables de entorno
+# ==============================================================================
 .env
+.env.*
+!.env.example
 *.local
-# Node / Frontend
+
+# ==============================================================================
+# Node / Frontend (React + Vite)
+# ==============================================================================
 node_modules/
 dist/
-# Bases de datos y archivos de prueba generados
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================================================================
+# Almacenamiento local de datos generados en runtime
+# ==============================================================================
 *.db
+*.sqlite
 *.sqlite3
+*-journal
 chroma_db/
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
+backend/data/chroma_db/
+
+# ==============================================================================
+# Archivos temporales de sistema y editores
+# ==============================================================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
