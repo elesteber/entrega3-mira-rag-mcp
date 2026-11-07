@@ -65,13 +65,13 @@
 
 ### Pruebas para US1
 - [ ] T016 [P] [Rodrigo Guerrero] [US1] Escribir pruebas unitarias de consulta de integración y detección de límites de tasa (240 req/min vs 100 contractual) en `tests/unit/test_integraciones.py`.
-- [ ] T017 [P] [Lester González] [US1] Escribir prueba de integración del endpoint `/api/chat` para consulta de diagnóstico de paso a producción en `tests/integration/test_diagnostico_produccion.py`.
+- [x] T017 [P] [Lester González] [US1] Escribir prueba de integración del endpoint `/api/chat` para consulta de diagnóstico de paso a producción en `tests/integration/test_diagnostico_produccion.py`.
 
 ### Implementación para US1
 - [ ] T018 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_integracion` en `backend/mcp/tools/sql_tools.py` retornando telemetría de pruebas y alerta de tasa según `contracts/mcp-tools.json`.
 - [ ] T019 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_formularios` en `backend/mcp/tools/sql_tools.py` retornando cantidad de muestras y estado de revisión según `contracts/mcp-tools.json`.
-- [ ] T020 [Lester González] [US1] Implementar ruteador `POST /api/chat` en `backend/app/routers/chat.py` procesando consultas de diagnóstico combinadas (RAG + MCP).
-- [ ] T021 [Lester González] [US1] Implementar prompt de sistema y ensamblado de contexto en `backend/app/orchestrator.py` instruyendo a Gemini Flash a evaluar los 6 criterios de salida a producción de `GUI-INC_v2 §3`.
+- [x] T020 [Lester González] [US1] Implementar ruteador `POST /api/chat` en `backend/app/routers/chat.py` procesando consultas de diagnóstico combinadas (RAG + MCP).
+- [x] T021 [Lester González] [US1] Implementar prompt de sistema y ensamblado de contexto en `backend/app/orchestrator.py` instruyendo a Gemini Flash a evaluar los 6 criterios de salida a producción de `GUI-INC_v2 §3`.
 - [ ] T022 [Jorge Álvarez] [US1] Implementar componente de diagnóstico y badge de estado de evidencia en `frontend/src/components/EvidenceBadge.tsx`.
 - [ ] T023 [Jorge Álvarez] [US1] Integrar vista de diagnóstico en el layout principal en `frontend/src/App.tsx`.
 
