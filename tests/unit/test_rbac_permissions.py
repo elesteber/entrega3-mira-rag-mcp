@@ -36,12 +36,13 @@ def setup_db(tmp_path):
     set_current_user_id(None)
 
 
-def _token_for(tarea_id: str, org_id: str, nuevo_estado: str, usuario_id: str) -> str:
+def _token_for(tarea_id: str, org_id: str, nuevo_estado: str, usuario_id: str, estado_anterior: str = "pendiente") -> str:
     now = datetime.datetime.now(datetime.timezone.utc)
     payload = {
         "action_type": "CAMBIO_ESTADO_TAREA",
         "tarea_id": tarea_id,
         "org_id": org_id,
+        "estado_anterior": estado_anterior,
         "nuevo_estado": nuevo_estado,
         "usuario_id": usuario_id,
         "exp": int((now + datetime.timedelta(minutes=5)).timestamp()),

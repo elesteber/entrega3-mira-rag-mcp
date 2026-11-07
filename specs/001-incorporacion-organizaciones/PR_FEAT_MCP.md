@@ -42,6 +42,12 @@ Se estableció la infraestructura relacional, la ingesta reproducible de datos o
   - `consultar_formularios`: Conteo de muestras y verificación de estado operativo.
 - **`backend/mcp/tools/mutation_tools.py`**:
   - `marcar_tarea`: Herramienta protegida **no expuesta al LLM**. Ejecuta transacción atómica SQLite (`BEGIN IMMEDIATE`), extrae `org_id` legítimo desde `tareas`, verifica expiración y firma de tokens HMAC, y valida que el `token_hash` no haya sido consumido previamente.
+  - **Endurecimiento de Seguridad (PR-6, PR-7 / Fix PR #7)**:
+    - Validación criptográfica estricta *fail-closed* del token efímero HMAC-SHA256: rechazo sistemático de tokens no firmados, falsos, con firma inválida, alterados, con algoritmo `"none"` o distinto a `"HS256"`, vencidos o con claims obligatorios faltantes (`tarea_id`, `org_id`, `usuario_id`, `estado_anterior`, `nuevo_estado`).
+    - Resolución obligatoria de la identidad efectiva del operador exclusivamente desde la sesión confiable del servidor (`get_current_user_id()`), rechazando la operación sin sesión (`None`). El parámetro `usuario_id` actúa únicamente como *assertion* comparativa y no como fuente de identidad.
+    - Revalidación transaccional dentro de `BEGIN IMMEDIATE` en SQLite: verificación de que el estado efectivo en base de datos coincida con el claim `estado_anterior` del token y que pertenezca a la organización vinculada. En caso de discrepancia, se ejecuta *rollback* inmediato y no se inserta ningún evento en `tarea_eventos_cambio`.
+    - Clave HMAC por defecto de 44 bytes (>= 32 bytes / 256 bits), eliminando completamente las advertencias `InsecureKeyLengthWarning` de PyJWT.
+    - Sanitización de logs y mensajes de error: nunca se exponen tokens ni secretos en mensajes de excepción.
 - **`backend/mcp/tools/rag_tools.py`**:
   - Stub contractual para `buscar_reglas` conforme a `contracts/mcp-tools.json`, marcado como pendiente de coordinación con Ángel Salgado.
 
@@ -51,11 +57,11 @@ Se estableció la infraestructura relacional, la ingesta reproducible de datos o
     `python -m tests.clients.test_external_mcp_client --user U-I1 --tool checklist_organizacion --args '{"org_id": "ORG-05"}'`
 
 ### D. Suite de Pruebas Automatizadas (`tests/`)
-- Se implementaron 32 pruebas que pasan al 100%:
+- Se implementaron 42 pruebas que pasan al 100%:
   - `tests/unit/test_integraciones.py` (5 pruebas)
   - `tests/unit/test_checklist.py` (6 pruebas)
   - `tests/unit/test_plantillas.py` (4 pruebas)
-  - `tests/unit/test_mutacion_eventos.py` (5 pruebas)
+  - `tests/unit/test_mutacion_eventos.py` (15 pruebas: incluye caso reproducible de token falso sin sesión, firma inválida, algoritmo none, claims faltantes, token expirado, sesión ausente, discrepancia de usuario/organización/estado, revalidación SQLite y anti-replay)
   - `tests/unit/test_rbac_permissions.py` (6 pruebas)
   - `tests/integration/test_prompt_injection.py` (2 pruebas)
   - `tests/clients/test_external_mcp_client.py` (4 pruebas)
@@ -76,7 +82,7 @@ Se estableció la infraestructura relacional, la ingesta reproducible de datos o
 | Base SQLite e Hidratación (`backend/data/`) | 🟢 Listo | Idempotente, 6 tablas del kit, `CU-3_datos.xlsx` inmutable. |
 | Estado Efectivo y Event Sourcing | 🟢 Listo | `tarea_eventos_cambio` + `v_tareas_estado_efectivo` probados. |
 | Herramientas FastMCP de Consulta | 🟢 Listo | `checklist_organizacion`, `listar_plantillas`, `consultar_integracion`, `consultar_formularios`. |
-| Herramienta Protegida de Mutación | 🟢 Listo | `marcar_tarea` aislada del LLM, atómica con anti-replay. |
+| Herramienta Protegida de Mutación | 🟢 Listo | `marcar_tarea` aislada del LLM, atómica con anti-replay, fail-closed HMAC-SHA256 y revalidación en `BEGIN IMMEDIATE`. |
 | Control RBAC y Aislamiento PR-7 | 🟢 Listo | `U-I1`, `U-I2`, `U-I3`, `U-I4` verificados con pruebas específicas. |
 | Contención de Inyección de Prompt (D6) | 🟢 Listo | Observación de `T-008` en cuarentena (`es_dato_confiable: False`). |
 | Cliente Externo MCP (D7) | 🟢 Listo | Script CLI y pruebas pytest operativas. |
@@ -101,3 +107,4 @@ Se estableció la infraestructura relacional, la ingesta reproducible de datos o
 - [ ] **Lester González (FastAPI / Orquestador)**: Verificar compatibilidad de firmas de herramientas con el cliente MCP y flujo de confirmación de dos pasos (`/api/action/confirm`).
 - [ ] **Ángel Salgado (RAG / Evaluación)**: Validar contrato de `buscar_reglas` en `rag_tools.py` contra el esquema acordado en `contracts/mcp-tools.json`.
 - [ ] **Jorge Álvarez (Frontend)**: Comprobar esquema de retorno de `checklist_organizacion` y formato de trazas sanitizadas para visualización en UI.
+
