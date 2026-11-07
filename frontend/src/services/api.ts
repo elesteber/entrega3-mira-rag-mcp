@@ -173,4 +173,3 @@ export async function confirmAction(
     body: JSON.stringify(body),
   })
 }
-
