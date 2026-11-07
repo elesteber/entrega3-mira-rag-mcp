@@ -90,7 +90,7 @@
 ### Implementación para US2
 - [ ] T026 [Rodrigo Guerrero] [US2] Implementar herramienta FastMCP `checklist_organizacion` en `backend/mcp/tools/sql_tools.py` con resolución sobre `v_tareas_estado_efectivo` y cálculo de progreso según `contracts/mcp-tools.json`.
 - [ ] T027 [Lester González] [US2] Conectar la herramienta `checklist_organizacion` en `backend/app/orchestrator.py` exponiéndola al catálogo de Gemini y formateando el resumen de avance en lenguaje natural.
-- [ ] T028 [Jorge Álvarez] [US2] Crear componente interactivo de mensajería y visualización de listas de tareas en `frontend/src/components/ChatInterface.tsx`.
+- [X] T028 [Jorge Álvarez] [US2] Crear componente interactivo de mensajería y visualización de listas de tareas en `frontend/src/components/ChatInterface.tsx`.
 
 ---
 
