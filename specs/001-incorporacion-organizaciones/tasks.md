@@ -141,7 +141,7 @@
 
 ### Implementación para US5
 - [ ] T042 [Rodrigo Guerrero] [US5] Incorporar validación de pertenencia de organización y restricción de etapa `E5` (exclusiva de jefatura) en las herramientas de `backend/mcp/tools/sql_tools.py` y `mutation_tools.py`.
-- [ ] T043 [Lester González] [US5] Implementar ruteador `backend/app/routers/session.py` con endpoints `GET /api/session/users` y `POST /api/session/switch` según `contracts/api-rest.yaml`.
+- [x] T043 [Lester González] [US5] Implementar ruteador `backend/app/routers/session.py` con endpoints `GET /api/session/users` y `POST /api/session/switch` según `contracts/api-rest.yaml`.
 - [ ] T044 [Lester González] [US5] Inyectar middleware o dependencia de autenticación en `backend/app/security.py` que valide el token firmado de sesión demo en cada solicitud entrante.
 - [ ] T045 [Jorge Álvarez] [US5] Implementar barra superior con selector de identidad de usuario simulado en `frontend/src/components/SessionSelector.tsx` sincronizada con `POST /api/session/switch`.
 
