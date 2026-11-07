@@ -31,7 +31,7 @@ describe('SessionSelector Component (T045)', () => {
         expires_at: '2026-11-07T15:00:00Z',
       }
     })
-    vi.spyOn(api, 'setSessionToken').mockImplementation(() => {})
+    vi.spyOn(api, 'setSessionToken').mockImplementation(() => { })
   })
 
   it('al montarse llama a listUsers, selecciona U-I1 por defecto y emite onSessionChange', async () => {
@@ -98,4 +98,3 @@ describe('SessionSelector Component (T045)', () => {
     })
   })
 })
-
