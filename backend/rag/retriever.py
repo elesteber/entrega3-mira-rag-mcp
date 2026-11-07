@@ -8,7 +8,7 @@ que también la usa directamente la evaluación de recuperación (Recall@k).
 Modos de búsqueda:
 - ``denso``: similitud coseno de embeddings en ChromaDB.
 - ``hibrido`` (por defecto): fusiona el ranking denso con BM25 mediante RRF.
-  Ver ``docs/decisiones.md`` (ADR-10) y ``tests/evaluation/resultados/``.
+  Ver ``docs/decisiones.md`` (ADR-11) y ``tests/evaluation/resultados/``.
 
 En ambos modos ``similarity_score`` es la similitud coseno densa del fragmento,
 para que el umbral de evidencia tenga la misma escala.

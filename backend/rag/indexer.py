@@ -30,7 +30,7 @@ CORPUS_DIR_DEFECTO = RAIZ_REPO / "archivos-base" / "Kit_Entrega_3_MIRA" / "CU-3_
 PERSIST_DIR_DEFECTO = "backend/data/chroma_db"
 MODELO_DEFECTO = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 # El modelo trae max_seq_length=128 y truncaría 11 de 24 secciones; con 256 ninguna
-# se trunca (BERT admite hasta 512 posiciones). Elegido por experimento (ADR-10).
+# se trunca (BERT admite hasta 512 posiciones). Elegido por experimento (ADR-11).
 MAX_SEQ_LENGTH_DEFECTO = 256
 
 ESTRATEGIAS = ("encabezados", "fijo")
@@ -288,7 +288,7 @@ def fragmentar(docs: Iterable[Documento], estrategia: str, **opciones: int) -> l
 
 
 def resolver_persist_dir(persist_dir: str | Path | None = None) -> Path:
-    valor = Path(persist_dir or os.environ.get("CHROMA_PERSIST_DIRECTORY") or PERSIST_DIR_DEFECTO)
+    valor = Path(persist_dir or os.environ.get("CHROMA_PERSIST_DIRECTORY") or os.environ.get("CHROMADB_PATH") or PERSIST_DIR_DEFECTO)
     return valor if valor.is_absolute() else RAIZ_REPO / valor
 
 

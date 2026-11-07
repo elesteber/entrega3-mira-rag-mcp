@@ -22,7 +22,7 @@ uv run python -m tests.evaluation.eval_recuperacion   # experimento Recall@k
 La primera ejecución descarga `paraphrase-multilingual-MiniLM-L12-v2` (~470 MB) a la caché de Hugging Face.
 Si se reindexa con el servidor MCP corriendo, hay que reiniciar el servidor.
 
-## Configuración elegida (ADR-10)
+## Configuración elegida (ADR-11)
 
 - **Fragmentación por encabezados**: un fragmento por sección `##`; FIC-PLA §2 se divide por plantilla (`###`). 24 fragmentos.
   `chunk_id` determinista: `GUI-INC-V2-SEC3-P1`. La sección del fragmento es la unidad de cita (PR-2).

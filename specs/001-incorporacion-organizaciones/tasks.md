@@ -44,8 +44,8 @@
 - [ ] T005 [Rodrigo Guerrero] Implementar script CLI de hidratación SQLite en `backend/data/init_db.py` importando las 6 tablas base del kit (`organizaciones`, `usuarios`, `plantillas`, `tareas`, `integraciones`, `formularios_propios`) desde `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/datos/CU-3_datos.xlsx` en modo sólo lectura.
 - [ ] T006 [Rodrigo Guerrero] Crear la tabla `tarea_eventos_cambio` y la vista consolidada `v_tareas_estado_efectivo` en `backend/data/init_db.py` conforme a `data-model.md` y `contracts/events-schema.json`.
 - [ ] T007 [P] [Rodrigo Guerrero] Implementar servidor base FastMCP en `backend/mcp/server.py` configurando el registro modular de herramientas de lectura y de mutación protegida.
-- [ ] T008 [P] [Ángel Salgado] Implementar pipeline de chunking jerárquico determinista y persistencia en ChromaDB en `backend/rag/indexer.py` asegurando la generación y asignación de `chunk_id` determinista (`doc_code`, `version`, `section`, `status`).
-- [ ] T009 [Ángel Salgado] Crear script ejecutable de indexación offline en `backend/rag/index_corpus.py` que cargue y vectorice los 5 documentos en `backend/rag/chroma_db` usando `paraphrase-multilingual-MiniLM-L12-v2`.
+- [X] T008 [P] [Ángel Salgado] Implementar pipeline de chunking jerárquico determinista y persistencia en ChromaDB en `backend/rag/indexer.py` asegurando la generación y asignación de `chunk_id` determinista (`doc_code`, `version`, `section`, `status`).
+- [X] T009 [Ángel Salgado] Crear script ejecutable de indexación offline en `backend/rag/index_corpus.py` que cargue y vectorice los 5 documentos en `backend/rag/chroma_db` usando `paraphrase-multilingual-MiniLM-L12-v2`.
 - [ ] T010 [P] [Ángel Salgado] Implementar herramienta FastMCP `buscar_reglas` en `backend/mcp/tools/rag_tools.py` con filtros por vigencia (`vigente`, `todas`) y retorno de `chunk_id` estructurado según `contracts/mcp-tools.json`.
 - [ ] T011 [P] [Lester González] Configurar carga de entorno y configuración centralizada con Pydantic Settings en `backend/app/config.py` (`GEMINI_API_KEY`, `GEMINI_MODEL`, `SQLITE_DB_PATH`, `CHROMADB_PATH`, `JWT_SECRET`).
 - [ ] T012 [P] [Lester González] Implementar módulo de seguridad y emisión de tokens de sesión demo firmados HMAC en `backend/app/security.py` para los 4 usuarios reales del kit (`U-I1`, `U-I2`, `U-I3`, `U-I4`).
@@ -158,7 +158,7 @@
 - [ ] T047 [P] [Ángel Salgado] [US6] Escribir pruebas de integración sobre respuestas de abstención y reporte dual de conflictos en `tests/integration/test_conflictos_abstencion.py`.
 
 ### Implementación para US6
-- [ ] T048 [Ángel Salgado] [US6] Implementar lógica de filtrado por metadatos de vigencia en `backend/rag/retriever.py` asegurando exclusión de normas derogadas salvo solicitud explícita de histórico.
+- [X] T048 [Ángel Salgado] [US6] Implementar lógica de filtrado por metadatos de vigencia en `backend/rag/retriever.py` asegurando exclusión de normas derogadas salvo solicitud explícita de histórico.
 - [ ] T049 [Lester González] [US6] Configurar directivas del orquestador en `backend/app/orchestrator.py` para activar plantilla de abstención explícita ante score de recuperación insuficiente o ausencia de fragmentos.
 - [ ] T050 [Lester González] [US6] Implementar detección y reporte balanceado de contradicciones en `backend/app/orchestrator.py` forzando reporte dual sin toma de partido unilateral.
 
@@ -201,7 +201,7 @@
 
 **Propósito**: Consolidación del banco de evaluación, interoperabilidad con clientes externos, verificación en vivo de los 8 momentos obligatorios de la pauta docente y preparación de la defensa.
 
-- [ ] T060 [Ángel Salgado] Construir el archivo versionado del Golden Set con al menos 20 preguntas en `tests/evaluation/goldenset_cases.json` (12 con respuesta en corpus, 4 de abstención, 2 de versiones normativas y 2 de contradicción documental).
+- [X] T060 [Ángel Salgado] Construir el archivo versionado del Golden Set con al menos 20 preguntas en `tests/evaluation/goldenset_cases.json` (12 con respuesta en corpus, 4 de abstención, 2 de versiones normativas y 2 de contradicción documental).
 - [ ] T061 [Ángel Salgado] Documentar en `tests/evaluation/README.md` la auditoría de contradicciones del corpus: registrar explícitamente como pendiente de validación docente si se identifican 2 contradicciones internas genuinas entre documentos vigentes del corpus, diferenciándolo del caso `FIC-PLA` vs `plantillas.db`.
 - [ ] T062 [Ángel Salgado] Implementar script de evaluación métrica automatizada en `tests/evaluation/eval_goldenset.py` calculando `Recall@k`, precisión de citas, tasa de abstenciones correctas y cumplimiento de PR-1..PR-7.
 - [ ] T063 [P] [Rodrigo Guerrero] Crear script cliente MCP independiente en `tests/clients/test_external_mcp_client.py` para demostrar la conexión de un cliente externo directo al servidor FastMCP para el paso de demostración D7.
