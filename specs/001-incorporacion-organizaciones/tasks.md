@@ -154,8 +154,8 @@
 **Test Independiente**: Consultar plazos históricos vs vigentes (prioriza v2 y cita vigencia); consultar tema no presente en corpus (declara abstención abierta); consultar umbral de `PLA-ADM` (reporta 85% en ficha vs 80% en SQLite).
 
 ### Pruebas para US6
-- [ ] T046 [P] [Ángel Salgado] [US6] Escribir pruebas unitarias de recuperación con filtros de vigencia y detección de normas derogadas en `tests/unit/test_vigencia.py`.
-- [ ] T047 [P] [Ángel Salgado] [US6] Escribir pruebas de integración sobre respuestas de abstención y reporte dual de conflictos en `tests/integration/test_conflictos_abstencion.py`.
+- [X] T046 [P] [Ángel Salgado] [US6] Escribir pruebas unitarias de recuperación con filtros de vigencia y detección de normas derogadas en `tests/unit/test_vigencia.py`.
+- [X] T047 [P] [Ángel Salgado] [US6] Escribir pruebas de integración sobre respuestas de abstención y reporte dual de conflictos en `tests/integration/test_conflictos_abstencion.py`.
 
 ### Implementación para US6
 - [X] T048 [Ángel Salgado] [US6] Implementar lógica de filtrado por metadatos de vigencia en `backend/rag/retriever.py` asegurando exclusión de normas derogadas salvo solicitud explícita de histórico.
