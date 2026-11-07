@@ -101,7 +101,7 @@
 **Test Independiente**: Consultar requisitos de `PLA-CTA` o plazos de adaptación; el asistente cita `FIC-PLA_fichas_plantillas.md §2` o `GUI-INC_v2_vigente.md §3.2` con su `chunk_id` respectivo, desplegando la tarjeta interactiva en UI.
 
 ### Pruebas para US3
-- [ ] T029 [P] [Ángel Salgado] [US3] Escribir prueba de validación de fidelidad de citas y presencia de `chunk_id` en `tests/unit/test_citations.py`.
+- [X] T029 [P] [Ángel Salgado] [US3] Escribir prueba de validación de fidelidad de citas y presencia de `chunk_id` en `tests/unit/test_citations.py`.
 - [ ] T030 [P] [Rodrigo Guerrero] [US3] Escribir pruebas unitarias de la herramienta `listar_plantillas` en `tests/unit/test_plantillas.py`.
 
 ### Implementación para US3
