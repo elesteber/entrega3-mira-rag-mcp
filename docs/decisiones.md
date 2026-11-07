@@ -14,6 +14,7 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - [ADR-06: Selección del Modelo Generativo Gemini Flash](#adr-06-selección-del-modelo-generativo-gemini-flash)
 - [ADR-07: Protocolo de Confirmación Humana en Dos Fases para Mutaciones](#adr-07-protocolo-de-confirmación-humana-en-dos-fases-para-mutaciones)
 - [ADR-08: Uso de uv para Gestión de Entornos y Dependencias Python](#adr-08-uso-de-uv-para-gestión-de-entornos-y-dependencias-python)
+- [ADR-09: Almacén de Eventos Relacional y Vista de Estado Efectivo (PR-1, PR-6, FR-012)](#adr-09-almacén-de-eventos-relacional-y-vista-de-estado-efectivo-pr-1-pr-6-fr-012)
 
 ---
 
@@ -52,10 +53,10 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 
 ### ADR-04: Implementación del Servidor MCP con FastMCP (Python)
 - **Fecha:** 2026-11-02
-- **Estado:** **Propuesta**
+- **Estado:** **Aceptada**
 - **Contexto:** Se requiere un servidor MCP propio que exponga herramientas de lectura y escritura para el caso de uso.
 - **Decisión:** Construir el servidor MCP utilizando la librería `FastMCP` de Python.
-- **Justificación:** FastMCP permite definir herramientas mediante tipado Pydantic estándar y decoradores, maneja esquemas JSON automáticamente, soporta ejecución local vía `stdio` o `SSE`, y se integra nativamente en el ecosistema Python del backend.
+- **Justificación:** FastMCP permite definir herramientas mediante tipado Pydantic estándar y decoradores, maneja esquemas JSON automáticamente, soporta ejecución local vía `stdio` o `SSE`, y se integra nativamente en el ecosistema Python del backend. Se ratifica e implementa operativamente con registro modular de herramientas y aislamiento de herramientas protegidas.
 - **Alternativas consideradas:** Servidor MCP en TypeScript (aumentaría la fricción al requerir dos runtimes diferentes en el backend).
 
 ---
@@ -101,3 +102,17 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - **Decisión:** Utilizar `uv` como gestor de paquetes y entornos virtuales.
 - **Justificación:** Es un orden de magnitud más rápido que pip/poetry, genera archivos de bloqueo deterministas (`uv.lock`) y garantiza reproducibilidad entre sistemas operativos.
 - **Alternativas consideradas:** Poetry / pip tradicional.
+
+---
+
+### ADR-09: Almacén de Eventos Relacional y Vista de Estado Efectivo (PR-1, PR-6, FR-012)
+- **Fecha:** 2026-11-07
+- **Estado:** **Aceptada**
+- **Contexto:** La cátedra y la constitución del proyecto exigen que los datos originales del archivo Excel `CU-3_datos.xlsx` permanezcan estrictamente inalterados en la base de datos (snapshot de solo lectura), mientras que el asistente debe reflejar mutaciones confirmadas de tareas de incorporación.
+- **Decisión:** Implementar la tabla `tarea_eventos_cambio` (almacén inmutable de mutaciones con `token_hash` SHA-256) y la vista consolidada `v_tareas_estado_efectivo` con resolución en tiempo real mediante `COALESCE(ult_ev.nuevo_estado, t.estado)` y transacción atómica SQLite (`BEGIN IMMEDIATE`).
+- **Justificación:**
+  1. Conserva el 100% de los datos originales del kit oficial en la tabla `tareas` sin sobreescrituras destructivas.
+  2. Garantiza control criptográfico anti-replay mediante restricción `UNIQUE` en `token_hash` sin almacenar secretos en texto plano.
+  3. Desacopla la importación administrativa offline del acceso operativo en tiempo de ejecución.
+  4. Permite auditoría completa de fecha, usuario y justificación para cada transición.
+- **Alternativas consideradas:** Sobreescritura directa de la tabla `tareas` (descartada por vulnerar la inmutabilidad exigida por la cátedra); almacenamiento de eventos en archivos JSON planos (descartado por falta de transaccionalidad ACID y soporte relacional).

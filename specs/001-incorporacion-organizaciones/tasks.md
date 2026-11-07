@@ -30,7 +30,7 @@
 
 - [ ] T001 [P] [Lester González] Configurar `pyproject.toml` con dependencias del proyecto (`fastapi>=0.115`, `uvicorn>=0.30`, `fastmcp>=0.4`, `google-genai>=0.1`, `chromadb>=0.5`, `sentence-transformers`, `pydantic>=2.0`, `pyjwt`, `pytest`, `pytest-asyncio`) y scripts de ejecución con `uv`.
 - [ ] T002 [P] [Jorge Álvarez] Revisar e integrar el scaffolding existente en la rama `feat/frontend-chat-ui` dentro de `frontend/` (`package.json`, `vite.config.ts`, `tsconfig.json`, TailwindCSS, `lucide-react`) sin sobrescribir código previo.
-- [ ] T003 [P] [Rodrigo Guerrero] Crear módulo de configuración de base de datos relacional y conexión con thread-safety en `backend/data/db.py` apuntando a `backend/data/mira_cu3.db`.
+- [X] T003 [P] [Rodrigo Guerrero] Crear módulo de configuración de base de datos relacional y conexión con thread-safety en `backend/data/db.py` apuntando a `backend/data/mira_cu3.db`.
 - [ ] T004 [P] [Ángel Salgado] Verificar rutas y lectura de los 5 archivos del corpus oficial en `backend/rag/verify_corpus.py` comprobando la presencia intacta de los archivos en `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus/`.
 
 ---
@@ -41,9 +41,9 @@
 
 **⚠️ CRÍTICO**: Las historias de usuario de las fases posteriores dependen de los artefactos producidos en esta fase.
 
-- [ ] T005 [Rodrigo Guerrero] Implementar script CLI de hidratación SQLite en `backend/data/init_db.py` importando las 6 tablas base del kit (`organizaciones`, `usuarios`, `plantillas`, `tareas`, `integraciones`, `formularios_propios`) desde `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/datos/CU-3_datos.xlsx` en modo sólo lectura.
-- [ ] T006 [Rodrigo Guerrero] Crear la tabla `tarea_eventos_cambio` y la vista consolidada `v_tareas_estado_efectivo` en `backend/data/init_db.py` conforme a `data-model.md` y `contracts/events-schema.json`.
-- [ ] T007 [P] [Rodrigo Guerrero] Implementar servidor base FastMCP en `backend/mcp/server.py` configurando el registro modular de herramientas de lectura y de mutación protegida.
+- [X] T005 [Rodrigo Guerrero] Implementar script CLI de hidratación SQLite en `backend/data/init_db.py` importando las 6 tablas base del kit (`organizaciones`, `usuarios`, `plantillas`, `tareas`, `integraciones`, `formularios_propios`) desde `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/datos/CU-3_datos.xlsx` en modo sólo lectura.
+- [X] T006 [Rodrigo Guerrero] Crear la tabla `tarea_eventos_cambio` y la vista consolidada `v_tareas_estado_efectivo` en `backend/data/init_db.py` conforme a `data-model.md` y `contracts/events-schema.json`.
+- [X] T007 [P] [Rodrigo Guerrero] Implementar servidor base FastMCP en `backend/mcp/server.py` configurando el registro modular de herramientas de lectura y de mutación protegida.
 - [ ] T008 [P] [Ángel Salgado] Implementar pipeline de chunking jerárquico determinista y persistencia en ChromaDB en `backend/rag/indexer.py` asegurando la generación y asignación de `chunk_id` determinista (`doc_code`, `version`, `section`, `status`).
 - [ ] T009 [Ángel Salgado] Crear script ejecutable de indexación offline en `backend/rag/index_corpus.py` que cargue y vectorice los 5 documentos en `backend/rag/chroma_db` usando `paraphrase-multilingual-MiniLM-L12-v2`.
 - [ ] T010 [P] [Ángel Salgado] Implementar herramienta FastMCP `buscar_reglas` en `backend/mcp/tools/rag_tools.py` con filtros por vigencia (`vigente`, `todas`) y retorno de `chunk_id` estructurado según `contracts/mcp-tools.json`.
@@ -64,12 +64,12 @@
 **Test Independiente**: Consultar estado de `ORG-07` y `ORG-08`; el sistema debe contrastar tareas efectivas, métricas de integración (tasa de llamadas y callbacks en SQLite) y los 6 criterios de `GUI-INC_v2_vigente.md §3` con citas y alertas técnicas verificables.
 
 ### Pruebas para US1
-- [ ] T016 [P] [Rodrigo Guerrero] [US1] Escribir pruebas unitarias de consulta de integración y detección de límites de tasa (240 req/min vs 100 contractual) en `tests/unit/test_integraciones.py`.
+- [X] T016 [P] [Rodrigo Guerrero] [US1] Escribir pruebas unitarias de consulta de integración y detección de límites de tasa (240 req/min vs 100 contractual) en `tests/unit/test_integraciones.py`.
 - [ ] T017 [P] [Lester González] [US1] Escribir prueba de integración del endpoint `/api/chat` para consulta de diagnóstico de paso a producción en `tests/integration/test_diagnostico_produccion.py`.
 
 ### Implementación para US1
-- [ ] T018 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_integracion` en `backend/mcp/tools/sql_tools.py` retornando telemetría de pruebas y alerta de tasa según `contracts/mcp-tools.json`.
-- [ ] T019 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_formularios` en `backend/mcp/tools/sql_tools.py` retornando cantidad de muestras y estado de revisión según `contracts/mcp-tools.json`.
+- [X] T018 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_integracion` en `backend/mcp/tools/sql_tools.py` retornando telemetría de pruebas y alerta de tasa según `contracts/mcp-tools.json`.
+- [X] T019 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_formularios` en `backend/mcp/tools/sql_tools.py` retornando cantidad de muestras y estado de revisión según `contracts/mcp-tools.json`.
 - [ ] T020 [Lester González] [US1] Implementar ruteador `POST /api/chat` en `backend/app/routers/chat.py` procesando consultas de diagnóstico combinadas (RAG + MCP).
 - [ ] T021 [Lester González] [US1] Implementar prompt de sistema y ensamblado de contexto en `backend/app/orchestrator.py` instruyendo a Gemini Flash a evaluar los 6 criterios de salida a producción de `GUI-INC_v2 §3`.
 - [ ] T022 [Jorge Álvarez] [US1] Implementar componente de diagnóstico y badge de estado de evidencia en `frontend/src/components/EvidenceBadge.tsx`.
@@ -84,11 +84,11 @@
 **Test Independiente**: Usuario `U-I1` consulta `ORG-05`; retorna 10 tareas efectivas (5 completadas, 1 en curso, 4 pendientes) mediante la vista `v_tareas_estado_efectivo`.
 
 ### Pruebas para US2
-- [ ] T024 [P] [Rodrigo Guerrero] [US2] Escribir pruebas unitarias de consulta sobre `v_tareas_estado_efectivo` y filtros por etapa en `tests/unit/test_checklist.py`.
+- [X] T024 [P] [Rodrigo Guerrero] [US2] Escribir pruebas unitarias de consulta sobre `v_tareas_estado_efectivo` y filtros por etapa en `tests/unit/test_checklist.py`.
 - [ ] T025 [P] [Jorge Álvarez] [US2] Escribir prueba de renderizado del listado de tareas y progreso porcentual en `frontend/src/tests/Checklist.test.tsx`.
 
 ### Implementación para US2
-- [ ] T026 [Rodrigo Guerrero] [US2] Implementar herramienta FastMCP `checklist_organizacion` en `backend/mcp/tools/sql_tools.py` con resolución sobre `v_tareas_estado_efectivo` y cálculo de progreso según `contracts/mcp-tools.json`.
+- [X] T026 [Rodrigo Guerrero] [US2] Implementar herramienta FastMCP `checklist_organizacion` en `backend/mcp/tools/sql_tools.py` con resolución sobre `v_tareas_estado_efectivo` y cálculo de progreso según `contracts/mcp-tools.json`.
 - [ ] T027 [Lester González] [US2] Conectar la herramienta `checklist_organizacion` en `backend/app/orchestrator.py` exponiéndola al catálogo de Gemini y formateando el resumen de avance en lenguaje natural.
 - [ ] T028 [Jorge Álvarez] [US2] Crear componente interactivo de mensajería y visualización de listas de tareas en `frontend/src/components/ChatInterface.tsx`.
 
@@ -102,10 +102,10 @@
 
 ### Pruebas para US3
 - [ ] T029 [P] [Ángel Salgado] [US3] Escribir prueba de validación de fidelidad de citas y presencia de `chunk_id` en `tests/unit/test_citations.py`.
-- [ ] T030 [P] [Rodrigo Guerrero] [US3] Escribir pruebas unitarias de la herramienta `listar_plantillas` en `tests/unit/test_plantillas.py`.
+- [X] T030 [P] [Rodrigo Guerrero] [US3] Escribir pruebas unitarias de la herramienta `listar_plantillas` en `tests/unit/test_plantillas.py`.
 
 ### Implementación para US3
-- [ ] T031 [Rodrigo Guerrero] [US3] Implementar herramienta FastMCP `listar_plantillas` en `backend/mcp/tools/sql_tools.py` según `contracts/mcp-tools.json`.
+- [X] T031 [Rodrigo Guerrero] [US3] Implementar herramienta FastMCP `listar_plantillas` en `backend/mcp/tools/sql_tools.py` según `contracts/mcp-tools.json`.
 - [ ] T032 [Lester González] [US3] Implementar extractor y validador de citas estructuradas en `backend/app/orchestrator.py` asociando cada afirmación al `chunk_id` y metadatos devueltos por `buscar_reglas`.
 - [ ] T033 [Jorge Álvarez] [US3] Implementar componente interactivo desplegable de cita en `frontend/src/components/CitationCard.tsx` mostrando `chunk_id`, documento, versión, sección y texto literal.
 
@@ -118,11 +118,11 @@
 **Test Independiente**: `U-I1` propone marcar `T-006` de `ORG-05` como completada; el sistema genera token efímero sin alterar SQLite; el usuario confirma en modal; el backend ejecuta transacción atómica en `tarea_eventos_cambio`; la vista `v_tareas_estado_efectivo` refleja el cambio; reusar el token falla con `400`.
 
 ### Pruebas para US4
-- [ ] T034 [P] [Rodrigo Guerrero] [US4] Escribir pruebas unitarias de mutación atómica, concurrencia optimista y anti-replay en `tests/unit/test_mutacion_eventos.py`.
+- [X] T034 [P] [Rodrigo Guerrero] [US4] Escribir pruebas unitarias de mutación atómica, concurrencia optimista y anti-replay en `tests/unit/test_mutacion_eventos.py`.
 - [ ] T035 [P] [Lester González] [US4] Escribir pruebas de integración para `/api/action/prepare` y `/api/action/confirm` en `tests/integration/test_action_flow.py`.
 
 ### Implementación para US4
-- [ ] T036 [Rodrigo Guerrero] [US4] Implementar herramienta FastMCP protegida `marcar_tarea` en `backend/mcp/tools/mutation_tools.py` con transacción atómica SQLite (`BEGIN IMMEDIATE`), verificación de `token_hash` anti-replay y extracción de `org_id` legítimo desde `tareas`.
+- [X] T036 [Rodrigo Guerrero] [US4] Implementar herramienta FastMCP protegida `marcar_tarea` en `backend/mcp/tools/mutation_tools.py` con transacción atómica SQLite (`BEGIN IMMEDIATE`), verificación de `token_hash` anti-replay y extracción de `org_id` legítimo desde `tareas`.
 - [ ] T037 [Lester González] [US4] Implementar endpoint `POST /api/action/prepare` en `backend/app/routers/actions.py` validando permisos y emitiendo `confirmation_token` firmado (HMAC-SHA256, TTL 5 min) según `contracts/api-rest.yaml`.
 - [ ] T038 [Lester González] [US4] Implementar endpoint `POST /api/action/confirm` en `backend/app/routers/actions.py` invocando la mutación protegida y respondiendo con `evento_id` y estado efectivo.
 - [ ] T039 [Jorge Álvarez] [US4] Implementar componente modal interactivo de confirmación humana en dos pasos en `frontend/src/components/ConfirmationModal.tsx` con detalle de estados, justificación y botón de confirmación explícito.
@@ -136,11 +136,11 @@
 **Test Independiente**: Alternar sesión entre `U-I1` y `U-I3`; `U-I1` no puede consultar `ORG-06` ni autorizar etapa `E5` (`T-010`); `U-I4` comercial solo puede ver catálogo general y se le deniega el acceso a tareas.
 
 ### Pruebas para US5
-- [ ] T040 [P] [Rodrigo Guerrero] [US5] Escribir pruebas de aislamiento organizacional y control RBAC en SQLite en `tests/unit/test_rbac_permissions.py`.
+- [X] T040 [P] [Rodrigo Guerrero] [US5] Escribir pruebas de aislamiento organizacional y control RBAC en SQLite en `tests/unit/test_rbac_permissions.py`.
 - [ ] T041 [P] [Lester González] [US5] Escribir pruebas de endpoints de sesión (`/api/session/users` y `/api/session/switch`) en `tests/integration/test_session.py`.
 
 ### Implementación para US5
-- [ ] T042 [Rodrigo Guerrero] [US5] Incorporar validación de pertenencia de organización y restricción de etapa `E5` (exclusiva de jefatura) en las herramientas de `backend/mcp/tools/sql_tools.py` y `mutation_tools.py`.
+- [X] T042 [Rodrigo Guerrero] [US5] Incorporar validación de pertenencia de organización y restricción de etapa `E5` (exclusiva de jefatura) en las herramientas de `backend/mcp/tools/sql_tools.py` y `mutation_tools.py`.
 - [ ] T043 [Lester González] [US5] Implementar ruteador `backend/app/routers/session.py` con endpoints `GET /api/session/users` y `POST /api/session/switch` según `contracts/api-rest.yaml`.
 - [ ] T044 [Lester González] [US5] Inyectar middleware o dependencia de autenticación en `backend/app/security.py` que valide el token firmado de sesión demo en cada solicitud entrante.
 - [ ] T045 [Jorge Álvarez] [US5] Implementar barra superior con selector de identidad de usuario simulado en `frontend/src/components/SessionSelector.tsx` sincronizada con `POST /api/session/switch`.
@@ -187,11 +187,11 @@
 **Test Independiente**: Consultar observación de `T-008`; el asistente muestra el texto como dato no confiable sin ejecutar la orden de completar tareas; forzar timeout del LLM y verificar mensaje de degradación transparente en UI.
 
 ### Pruebas para US8
-- [ ] T055 [P] [Rodrigo Guerrero] [US8] Escribir prueba de contención de prompt injection de `T-008` en `tests/integration/test_prompt_injection.py`.
+- [X] T055 [P] [Rodrigo Guerrero] [US8] Escribir prueba de contención de prompt injection de `T-008` en `tests/integration/test_prompt_injection.py`.
 - [ ] T056 [P] [Lester González] [US8] Escribir prueba de resiliencia ante falla de conexión con Gemini API en `tests/integration/test_resiliencia_api.py`.
 
 ### Implementación para US8
-- [ ] T057 [Rodrigo Guerrero] [US8] Asegurar que las observaciones y notas de campo se etiqueten explícitamente como datos no confiables en `backend/mcp/tools/sql_tools.py`.
+- [X] T057 [Rodrigo Guerrero] [US8] Asegurar que las observaciones y notas de campo se etiqueten explícitamente como datos no confiables en `backend/mcp/tools/sql_tools.py`.
 - [ ] T058 [Lester González] [US8] Reforzar el System Prompt en `backend/app/orchestrator.py` con directivas estrictas de aislamiento de directivas textuales en datos (Regla 5 de AGENTS.md).
 - [ ] T059 [Lester González] [US8] Implementar manejadores globales de excepciones y códigos de error unificados en `backend/app/main.py` conforme al modelo `ApiError` de `contracts/api-rest.yaml`.
 
@@ -204,7 +204,7 @@
 - [ ] T060 [Ángel Salgado] Construir el archivo versionado del Golden Set con al menos 20 preguntas en `tests/evaluation/goldenset_cases.json` (12 con respuesta en corpus, 4 de abstención, 2 de versiones normativas y 2 de contradicción documental).
 - [ ] T061 [Ángel Salgado] Documentar en `tests/evaluation/README.md` la auditoría de contradicciones del corpus: registrar explícitamente como pendiente de validación docente si se identifican 2 contradicciones internas genuinas entre documentos vigentes del corpus, diferenciándolo del caso `FIC-PLA` vs `plantillas.db`.
 - [ ] T062 [Ángel Salgado] Implementar script de evaluación métrica automatizada en `tests/evaluation/eval_goldenset.py` calculando `Recall@k`, precisión de citas, tasa de abstenciones correctas y cumplimiento de PR-1..PR-7.
-- [ ] T063 [P] [Rodrigo Guerrero] Crear script cliente MCP independiente en `tests/clients/test_external_mcp_client.py` para demostrar la conexión de un cliente externo directo al servidor FastMCP para el paso de demostración D7.
+- [X] T063 [P] [Rodrigo Guerrero] Crear script cliente MCP independiente en `tests/clients/test_external_mcp_client.py` para demostrar la conexión de un cliente externo directo al servidor FastMCP para el paso de demostración D7.
 - [ ] T064 [Jorge Álvarez] Realizar ajustes finales de interfaz, responsive design, accesibilidad y mensajes de feedback en `frontend/src/App.tsx`.
 - [ ] T065 [Lester González, Jorge Álvarez] Implementar script de prueba end-to-end de los 8 momentos de demostración en vivo (D1 a D8) en `tests/integration/test_demo_d1_d8.py` siguiendo `specs/001-incorporacion-organizaciones/quickstart.md`.
 - [ ] T066 [Todos] Ensayo general del guion de demostración en vivo (D1 a D8) y verificación final contra `quickstart.md`.
