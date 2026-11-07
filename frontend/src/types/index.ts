@@ -75,6 +75,13 @@ export interface ActionPrepareRequest {
   tarea_id: string
   nuevo_estado: TaskState
   justificacion: string
+  action_type?: string
+  target_id?: string
+  payload?: {
+    nuevo_estado?: TaskState
+    justificacion?: string
+    [key: string]: unknown
+  } | Record<string, unknown>
 }
 
 export interface ActionPrepareResponse {

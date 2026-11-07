@@ -1,21 +1,49 @@
 import { useState, useCallback } from 'react'
+import { CheckCircle2, X } from 'lucide-react'
 import { isMockMode } from './services/api'
-import type { SimulatedUser, McpTrace, ChatResponse } from './types'
+import type {
+  SimulatedUser,
+  McpTrace,
+  ChatResponse,
+  ActionProposal,
+  ActionConfirmResponse,
+} from './types'
 import { SessionSelector } from './components/SessionSelector'
 import { ChatInterface } from './components/ChatInterface'
 import { McpTracePanel } from './components/McpTracePanel'
+import { ActionConfirmationModal } from './components/ActionConfirmationModal'
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<SimulatedUser | null>(null)
   const [activeTraces, setActiveTraces] = useState<McpTrace[]>([])
+  const [pendingProposal, setPendingProposal] = useState<ActionProposal | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [notification, setNotification] = useState<string | null>(null)
 
   const handleSessionChange = useCallback((user: SimulatedUser) => {
     setCurrentUser(user)
     setActiveTraces([])
+    setPendingProposal(null)
+    setIsModalOpen(false)
   }, [])
 
   const handleChatResponse = useCallback((response: ChatResponse) => {
     setActiveTraces(response.mcp_traces || [])
+    if (response.action_proposal) {
+      setPendingProposal(response.action_proposal)
+      setIsModalOpen(true)
+    }
+  }, [])
+
+  const handleActionProposal = useCallback((proposal: ActionProposal) => {
+    setPendingProposal(proposal)
+    setIsModalOpen(true)
+  }, [])
+
+  const handleActionSuccess = useCallback((result: ActionConfirmResponse) => {
+    setNotification(
+      `Acción confirmada: Tarea ${result.tarea_id} actualizada a ${result.nuevo_estado} (Evento #${result.evento_id}).`,
+    )
   }, [])
 
   return (
@@ -42,6 +70,28 @@ export function App() {
         <SessionSelector onSessionChange={handleSessionChange} />
       </header>
 
+      {/* Notificación flotante superior de acciones ejecutadas */}
+      {notification && (
+        <aside
+          role="status"
+          aria-label="Notificación de acción"
+          className="mx-auto mt-4 flex w-full max-w-7xl items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-medium text-emerald-900 shadow-sm"
+        >
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+            <span>{notification}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            className="text-emerald-700 hover:text-emerald-900"
+            aria-label="Cerrar notificación"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </aside>
+      )}
+
       {/* Área principal con dos columnas responsivas */}
       <main className="mx-auto flex-1 max-w-7xl w-full p-4 sm:p-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -54,6 +104,7 @@ export function App() {
               key={currentUser?.usuario_id ?? 'initial-session'}
               organizationContext={currentUser?.orgs_asignadas?.[0] ?? null}
               onResponse={handleChatResponse}
+              onActionProposal={handleActionProposal}
             />
           </section>
 
@@ -64,6 +115,14 @@ export function App() {
           />
         </div>
       </main>
+
+      {/* Modal interactivo de confirmación en dos pasos (PR-1, PR-6) */}
+      <ActionConfirmationModal
+        isOpen={isModalOpen}
+        proposal={pendingProposal}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleActionSuccess}
+      />
     </div>
   )
 }

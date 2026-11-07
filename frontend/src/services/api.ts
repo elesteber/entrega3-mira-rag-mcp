@@ -13,6 +13,7 @@ import type {
   ActionConfirmRequest,
   ActionConfirmResponse,
   ApiError,
+  TaskState,
 } from '../types'
 import {
   mockListUsers,
@@ -149,15 +150,52 @@ export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
   })
 }
 
+export type ActionPrepareInput =
+  | ActionPrepareRequest
+  | {
+      action_type?: string
+      target_id: string
+      payload?: { nuevo_estado?: TaskState; justificacion?: string } | Record<string, unknown>
+      tarea_id?: string
+      nuevo_estado?: TaskState
+      justificacion?: string
+    }
+
 export async function prepareAction(
-  request: ActionPrepareRequest,
+  request: ActionPrepareInput,
 ): Promise<ActionPrepareResponse> {
+  const tareaId =
+    ('tarea_id' in request && request.tarea_id) ||
+    ('target_id' in request && request.target_id) ||
+    ''
+
+  const payloadObj =
+    'payload' in request && request.payload && typeof request.payload === 'object'
+      ? (request.payload as { nuevo_estado?: TaskState; justificacion?: string })
+      : null
+
+  const nuevoEstado =
+    request.nuevo_estado ||
+    payloadObj?.nuevo_estado ||
+    'completada'
+
+  const justificacion =
+    request.justificacion ||
+    payloadObj?.justificacion ||
+    ''
+
+  const normalizedRequest: ActionPrepareRequest = {
+    tarea_id: tareaId,
+    nuevo_estado: nuevoEstado,
+    justificacion: justificacion,
+  }
+
   if (isMockMode()) {
-    return mockPrepareAction(request)
+    return mockPrepareAction(normalizedRequest)
   }
   return requestWithTimeout<ActionPrepareResponse>('/api/action/prepare', {
     method: 'POST',
-    body: JSON.stringify(request),
+    body: JSON.stringify(normalizedRequest),
   })
 }
 

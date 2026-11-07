@@ -130,4 +130,41 @@ describe('App Component (T023 / T054)', () => {
       expect(screen.queryByText('consultar_integracion')).not.toBeInTheDocument()
     })
   })
+
+  it('abre el modal de confirmación de acción cuando la respuesta del chat contiene una action_proposal', async () => {
+    const user = userEvent.setup()
+    const mockProposalChatResponse: ChatResponse = {
+      answer: 'Propuesta generada para completar T-006',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Se verificó recepción SFTP.',
+        confirmation_token: 'secret-token-demo',
+        expires_at: '2026-11-07T12:05:00Z',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockProposalChatResponse)
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    // Modal debe abrirse automáticamente con la propuesta
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+      expect(screen.getByText('T-006')).toBeInTheDocument()
+      expect(screen.getByText('Se verificó recepción SFTP.')).toBeInTheDocument()
+    })
+  })
 })

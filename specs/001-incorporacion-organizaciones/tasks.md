@@ -125,7 +125,7 @@
 - [ ] T036 [Rodrigo Guerrero] [US4] Implementar herramienta FastMCP protegida `marcar_tarea` en `backend/mcp/tools/mutation_tools.py` con transacción atómica SQLite (`BEGIN IMMEDIATE`), verificación de `token_hash` anti-replay y extracción de `org_id` legítimo desde `tareas`.
 - [ ] T037 [Lester González] [US4] Implementar endpoint `POST /api/action/prepare` en `backend/app/routers/actions.py` validando permisos y emitiendo `confirmation_token` firmado (HMAC-SHA256, TTL 5 min) según `contracts/api-rest.yaml`.
 - [ ] T038 [Lester González] [US4] Implementar endpoint `POST /api/action/confirm` en `backend/app/routers/actions.py` invocando la mutación protegida y respondiendo con `evento_id` y estado efectivo.
-- [ ] T039 [Jorge Álvarez] [US4] Implementar componente modal interactivo de confirmación humana en dos pasos en `frontend/src/components/ConfirmationModal.tsx` con detalle de estados, justificación y botón de confirmación explícito.
+- [X] T039 [Jorge Álvarez] [US4] Implementar componente modal interactivo de confirmación humana en dos pasos en `frontend/src/components/ConfirmationModal.tsx` con detalle de estados, justificación y botón de confirmación explícito.
 
 ---
 
