@@ -131,4 +131,3 @@ describe('Servicios API y Mocks (T015)', () => {
     expect(conf.nuevo_estado).toBe('completada')
   })
 })
-

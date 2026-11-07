@@ -109,4 +109,3 @@ export interface ApiError {
   principle_violated?: string | null
   details?: Record<string, unknown> | null
 }
-
