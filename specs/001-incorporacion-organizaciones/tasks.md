@@ -29,7 +29,7 @@
 **Propósito**: Inicialización de entornos de desarrollo, dependencias declaradas y configuración base para permitir trabajo paralelo de los 4 integrantes.
 
 - [ ] T001 [P] [Lester González] Configurar `pyproject.toml` con dependencias del proyecto (`fastapi>=0.115`, `uvicorn>=0.30`, `fastmcp>=0.4`, `google-genai>=0.1`, `chromadb>=0.5`, `sentence-transformers`, `pydantic>=2.0`, `pyjwt`, `pytest`, `pytest-asyncio`) y scripts de ejecución con `uv`.
-- [X] T002 [P] [Jorge Álvarez] Revisar e integrar el scaffolding existente en la rama `feat/frontend-chat-ui` dentro de `frontend/` (`package.json`, `vite.config.ts`, `tsconfig.json`, TailwindCSS, `lucide-react`) sin sobrescribir código previo.
+- [ ] T002 [P] [Jorge Álvarez] Revisar e integrar el scaffolding existente en la rama `feat/frontend-chat-ui` dentro de `frontend/` (`package.json`, `vite.config.ts`, `tsconfig.json`, TailwindCSS, `lucide-react`) sin sobrescribir código previo.
 - [ ] T003 [P] [Rodrigo Guerrero] Crear módulo de configuración de base de datos relacional y conexión con thread-safety en `backend/data/db.py` apuntando a `backend/data/mira_cu3.db`.
 - [ ] T004 [P] [Ángel Salgado] Verificar rutas y lectura de los 5 archivos del corpus oficial en `backend/rag/verify_corpus.py` comprobando la presencia intacta de los archivos en `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus/`.
 
@@ -50,8 +50,8 @@
 - [ ] T011 [P] [Lester González] Configurar carga de entorno y configuración centralizada con Pydantic Settings en `backend/app/config.py` (`GEMINI_API_KEY`, `GEMINI_MODEL`, `SQLITE_DB_PATH`, `CHROMADB_PATH`, `JWT_SECRET`).
 - [ ] T012 [P] [Lester González] Implementar módulo de seguridad y emisión de tokens de sesión demo firmados HMAC en `backend/app/security.py` para los 4 usuarios reales del kit (`U-I1`, `U-I2`, `U-I3`, `U-I4`).
 - [ ] T013 [Lester González] Implementar cliente MCP asíncrono en `backend/mcp/client.py` para invocar herramientas del servidor FastMCP (`server.py`) inyectando el contexto de sesión confiable del operador.
-- [X] T014 [P] [Jorge Álvarez] Definir tipos TypeScript derivados de `contracts/api-rest.yaml` en `frontend/src/types/index.ts` (`SimulatedUser`, `ChatResponse`, `Citation` con `chunk_id`, `McpTrace`, `ActionProposal`).
-- [X] T015 [Jorge Álvarez] Implementar cliente HTTP Axios/Fetch con soporte de mocks de desarrollo y manejo de sesión demo en `frontend/src/services/api.ts`.
+- [ ] T014 [P] [Jorge Álvarez] Definir tipos TypeScript derivados de `contracts/api-rest.yaml` en `frontend/src/types/index.ts` (`SimulatedUser`, `ChatResponse`, `Citation` con `chunk_id`, `McpTrace`, `ActionProposal`).
+- [ ] T015 [Jorge Álvarez] Implementar cliente HTTP Axios/Fetch con soporte de mocks de desarrollo y manejo de sesión demo en `frontend/src/services/api.ts`.
 
 **Checkpoint Fundacional**: Base SQLite hidratada, ChromaDB indexado, servidor FastMCP levantado, backend FastAPI con seguridad base y cliente frontend con tipos contractuales.
 
@@ -72,8 +72,8 @@
 - [ ] T019 [P] [Rodrigo Guerrero] [US1] Implementar herramienta FastMCP `consultar_formularios` en `backend/mcp/tools/sql_tools.py` retornando cantidad de muestras y estado de revisión según `contracts/mcp-tools.json`.
 - [ ] T020 [Lester González] [US1] Implementar ruteador `POST /api/chat` en `backend/app/routers/chat.py` procesando consultas de diagnóstico combinadas (RAG + MCP).
 - [ ] T021 [Lester González] [US1] Implementar prompt de sistema y ensamblado de contexto en `backend/app/orchestrator.py` instruyendo a Gemini Flash a evaluar los 6 criterios de salida a producción de `GUI-INC_v2 §3`.
-- [X] T022 [Jorge Álvarez] [US1] Implementar componente de diagnóstico y badge de estado de evidencia en `frontend/src/components/EvidenceBadge.tsx`.
-- [X] T023 [Jorge Álvarez] [US1] Integrar vista de diagnóstico en el layout principal en `frontend/src/App.tsx`.
+- [ ] T022 [Jorge Álvarez] [US1] Implementar componente de diagnóstico y badge de estado de evidencia en `frontend/src/components/EvidenceBadge.tsx`.
+- [ ] T023 [Jorge Álvarez] [US1] Integrar vista de diagnóstico en el layout principal en `frontend/src/App.tsx`.
 
 ---
 
@@ -85,12 +85,12 @@
 
 ### Pruebas para US2
 - [ ] T024 [P] [Rodrigo Guerrero] [US2] Escribir pruebas unitarias de consulta sobre `v_tareas_estado_efectivo` y filtros por etapa en `tests/unit/test_checklist.py`.
-- [ ] T025 [P] [Jorge Álvarez] [US2] Escribir prueba de renderizado del listado de tareas y progreso porcentual en `frontend/src/tests/Checklist.test.tsx`.
+- [X] T025 [P] [Jorge Álvarez] [US2] Escribir prueba de renderizado del listado de tareas y progreso porcentual en `frontend/src/tests/Checklist.test.tsx`.
 
 ### Implementación para US2
 - [ ] T026 [Rodrigo Guerrero] [US2] Implementar herramienta FastMCP `checklist_organizacion` en `backend/mcp/tools/sql_tools.py` con resolución sobre `v_tareas_estado_efectivo` y cálculo de progreso según `contracts/mcp-tools.json`.
 - [ ] T027 [Lester González] [US2] Conectar la herramienta `checklist_organizacion` en `backend/app/orchestrator.py` exponiéndola al catálogo de Gemini y formateando el resumen de avance en lenguaje natural.
-- [X] T028 [Jorge Álvarez] [US2] Crear componente interactivo de mensajería y visualización de listas de tareas en `frontend/src/components/ChatInterface.tsx`.
+- [ ] T028 [Jorge Álvarez] [US2] Crear componente interactivo de mensajería y visualización de listas de tareas en `frontend/src/components/ChatInterface.tsx`.
 
 ---
 
@@ -107,7 +107,7 @@
 ### Implementación para US3
 - [ ] T031 [Rodrigo Guerrero] [US3] Implementar herramienta FastMCP `listar_plantillas` en `backend/mcp/tools/sql_tools.py` según `contracts/mcp-tools.json`.
 - [ ] T032 [Lester González] [US3] Implementar extractor y validador de citas estructuradas en `backend/app/orchestrator.py` asociando cada afirmación al `chunk_id` y metadatos devueltos por `buscar_reglas`.
-- [X] T033 [Jorge Álvarez] [US3] Implementar componente interactivo desplegable de cita en `frontend/src/components/CitationCard.tsx` mostrando `chunk_id`, documento, versión, sección y texto literal.
+- [ ] T033 [Jorge Álvarez] [US3] Implementar componente interactivo desplegable de cita en `frontend/src/components/CitationCard.tsx` mostrando `chunk_id`, documento, versión, sección y texto literal.
 
 ---
 
@@ -125,7 +125,7 @@
 - [ ] T036 [Rodrigo Guerrero] [US4] Implementar herramienta FastMCP protegida `marcar_tarea` en `backend/mcp/tools/mutation_tools.py` con transacción atómica SQLite (`BEGIN IMMEDIATE`), verificación de `token_hash` anti-replay y extracción de `org_id` legítimo desde `tareas`.
 - [ ] T037 [Lester González] [US4] Implementar endpoint `POST /api/action/prepare` en `backend/app/routers/actions.py` validando permisos y emitiendo `confirmation_token` firmado (HMAC-SHA256, TTL 5 min) según `contracts/api-rest.yaml`.
 - [ ] T038 [Lester González] [US4] Implementar endpoint `POST /api/action/confirm` en `backend/app/routers/actions.py` invocando la mutación protegida y respondiendo con `evento_id` y estado efectivo.
-- [X] T039 [Jorge Álvarez] [US4] Implementar componente modal interactivo de confirmación humana en dos pasos en `frontend/src/components/ConfirmationModal.tsx` con detalle de estados, justificación y botón de confirmación explícito.
+- [ ] T039 [Jorge Álvarez] [US4] Implementar componente modal interactivo de confirmación humana en dos pasos en `frontend/src/components/ConfirmationModal.tsx` con detalle de estados, justificación y botón de confirmación explícito.
 
 ---
 
@@ -143,7 +143,7 @@
 - [ ] T042 [Rodrigo Guerrero] [US5] Incorporar validación de pertenencia de organización y restricción de etapa `E5` (exclusiva de jefatura) en las herramientas de `backend/mcp/tools/sql_tools.py` y `mutation_tools.py`.
 - [ ] T043 [Lester González] [US5] Implementar ruteador `backend/app/routers/session.py` con endpoints `GET /api/session/users` y `POST /api/session/switch` según `contracts/api-rest.yaml`.
 - [ ] T044 [Lester González] [US5] Inyectar middleware o dependencia de autenticación en `backend/app/security.py` que valide el token firmado de sesión demo en cada solicitud entrante.
-- [X] T045 [Jorge Álvarez] [US5] Implementar barra superior con selector de identidad de usuario simulado en `frontend/src/components/SessionSelector.tsx` sincronizada con `POST /api/session/switch`.
+- [ ] T045 [Jorge Álvarez] [US5] Implementar barra superior con selector de identidad de usuario simulado en `frontend/src/components/SessionSelector.tsx` sincronizada con `POST /api/session/switch`.
 
 ---
 
@@ -172,11 +172,11 @@
 
 ### Pruebas para US7
 - [ ] T051 [P] [Lester González] [US7] Escribir prueba de captura de trazas MCP y sanitización de secretos en `tests/unit/test_mcp_traces.py`.
-- [ ] T052 [P] [Jorge Álvarez] [US7] Escribir prueba de renderizado del panel de trazas en `frontend/src/tests/McpTracePanel.test.tsx`.
+- [X] T052 [P] [Jorge Álvarez] [US7] Escribir prueba de renderizado del panel de trazas en `frontend/src/tests/McpTracePanel.test.tsx`.
 
 ### Implementación para US7
 - [ ] T053 [Lester González] [US7] Implementar decorador e interceptor de trazabilidad en `backend/app/orchestrator.py` capturando métricas de ejecución y sanitizando parámetros sensibles (enmascarando tokens como `[REDACTED]`).
-- [X] T054 [Jorge Álvarez] [US7] Implementar panel lateral desplegable de trazas de auditoría MCP en `frontend/src/components/McpTracePanel.tsx`.
+- [ ] T054 [Jorge Álvarez] [US7] Implementar panel lateral desplegable de trazas de auditoría MCP en `frontend/src/components/McpTracePanel.tsx`.
 
 ---
 
