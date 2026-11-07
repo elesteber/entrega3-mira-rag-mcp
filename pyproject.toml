@@ -1,0 +1,33 @@
+[project]
+name = "mira-cu3"
+version = "0.1.0"
+description = "MIRA CU-3: asistente de incorporación de organizaciones (RAG + MCP)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # RAG (backend/rag)
+    "chromadb>=1.0",
+    "sentence-transformers>=3.0",
+    "torch>=2.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+# PyTorch solo CPU: evita descargar las ruedas CUDA (varios GB).
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "modelo: pruebas que descargan/cargan el modelo de embeddings (lentas)",
+]
