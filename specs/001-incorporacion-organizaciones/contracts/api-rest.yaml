@@ -1,0 +1,517 @@
+openapi: 3.0.3
+info:
+  title: MIRA CU-3 - API Asistente de Incorporación de Organizaciones
+  description: >
+    API REST del orquestador backend de MIRA para el Caso de Uso CU-3 (Incorporación de Organizaciones).
+    Permite interacción conversacional fundamentada en RAG y herramientas MCP, gestión de identidad
+    simulada para demostración académica, y flujo de dos pasos (preparación estructurada y confirmación humana)
+    para mutaciones de estado en estricto apego a los principios PR-1 a PR-7.
+  version: 1.2.0
+servers:
+  - url: http://localhost:8000
+    description: Servidor de desarrollo local
+
+paths:
+  /api/session/users:
+    get:
+      summary: Listar usuarios simulados de demostración
+      description: >
+        Retorna la lista de identidades reales del personal de DPRIME presentes en el kit (tabla `usuarios`),
+        con sus roles y organizaciones asignadas para el selector de demostración académica.
+      responses:
+        '200':
+          description: Lista de usuarios de demostración disponible.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimulatedUser'
+
+  /api/session/switch:
+    post:
+      summary: Cambiar usuario simulado activo
+      description: >
+        Emite una sesión de demostración administrada y firmada por el backend para el usuario seleccionado.
+        Aviso: Esta simulación es exclusiva para evaluación académica y demostración; no reemplaza un sistema
+        de autenticación y autorización empresarial en producción (PR-7).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+              properties:
+                user_id:
+                  type: string
+                  enum: [U-I1, U-I2, U-I3, U-I4]
+                  example: U-I1
+      responses:
+        '200':
+          description: Sesión de demostración emitida exitosamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionTokenResponse'
+        '400':
+          description: Identificador de usuario no válido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/chat:
+    post:
+      summary: Enviar consulta al asistente conversacional
+      description: >
+        Procesa la consulta del usuario mediante orquestación RAG y MCP.
+        La identidad se valida en el servidor mediante el token de sesión de demostración
+        proporcionado en `Authorization: Bearer <token>` o en el encabezado `X-MIRA-Demo-Session`.
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          description: Token de sesión demo firmado (Bearer <token>).
+          schema:
+            type: string
+            example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        - name: X-MIRA-Demo-Session
+          in: header
+          required: false
+          description: Alternativa para token de sesión demo firmado.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Respuesta generada por el asistente con citas estructuradas y trazas MCP.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          description: Sesión de demostración no provista o firma inválida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Violación de control de acceso por rol u organización no asignada (PR-7).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          description: Error interno o falla de conexión con modelo/MCP.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/action/prepare:
+    post:
+      summary: Preparar propuesta de cambio de estado en tarea (Paso 1)
+      description: >
+        Genera una propuesta formal de mutación y emite un token de confirmación criptográfico efímero
+        firmado con HMAC-SHA256 (TTL 5 min) tras validar precondiciones, estado actual y permisos del usuario (PR-1, PR-6, PR-7).
+        No altera los registros de la base de datos ni ejecuta escrituras autónomas por parte del LLM.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de sesión demo firmado.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionPrepareRequest'
+      responses:
+        '200':
+          description: Propuesta generada y token efímero emitido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPrepareResponse'
+        '400':
+          description: Transición de estado inválida o tarea ya completada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario no tiene permisos sobre la organización o tarea.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Tarea u organización no encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/action/confirm:
+    post:
+      summary: Confirmar y ejecutar cambio de estado en tarea (Paso 2)
+      description: >
+        Valida el token efímero (firma, expiración, un solo uso mediante hash) y la coincidencia con la identidad
+        en sesión. Dentro de una transacción atómica SQLite, re-verifica el estado efectivo actual (concurrencia optimista)
+        y registra el evento en `tarea_eventos_cambio` preservando intacta la tabla original `tareas` (PR-1, PR-6).
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Token de sesión demo firmado.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionConfirmRequest'
+      responses:
+        '200':
+          description: Mutación ejecutada y registrada atómicamente en el almacén de eventos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionConfirmResponse'
+        '400':
+          description: Token inválido, expirado o ya consumido (anti-replay).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Usuario no autorizado para confirmar esta acción.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Conflicto de concurrencia optimista (el estado de la tarea cambió desde la preparación).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  schemas:
+    SimulatedUser:
+      type: object
+      required:
+        - usuario_id
+        - nombre
+        - rol
+        - orgs_asignadas
+      properties:
+        usuario_id:
+          type: string
+          enum: [U-I1, U-I2, U-I3, U-I4]
+          example: U-I1
+        nombre:
+          type: string
+          example: Sofía Tapia
+        rol:
+          type: string
+          enum: [ejecutivo_implementacion, jefe_implementacion, comercial]
+          example: ejecutivo_implementacion
+        orgs_asignadas:
+          type: array
+          items:
+            type: string
+          example: [ORG-05, ORG-07]
+
+    SessionTokenResponse:
+      type: object
+      required:
+        - session_token
+        - user
+        - expires_at
+      properties:
+        session_token:
+          type: string
+          description: Token de sesión firmado por el backend con HMAC-SHA256 para la demo académica.
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/SimulatedUser'
+        expires_at:
+          type: string
+          format: date-time
+          example: "2026-11-07T14:00:00Z"
+
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: "¿Qué tareas tiene pendientes la organización ORG-05?"
+        organization_context:
+          type: string
+          nullable: true
+          example: ORG-05
+        conversation_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryMessage'
+
+    HistoryMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+
+    ChatResponse:
+      type: object
+      required:
+        - answer
+        - citations
+        - mcp_traces
+        - evidence_status
+      properties:
+        answer:
+          type: string
+          description: Texto generado fundamentado en evidencia documental y/o datos MCP, o abstención explícita.
+        citations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Citation'
+        mcp_traces:
+          type: array
+          items:
+            $ref: '#/components/schemas/McpTrace'
+        evidence_status:
+          type: string
+          enum: [COMPLETA, PARCIAL, ABSTENCION, CONFLICTO_FUENTES]
+          description: Estado cualitativo de la evidencia encontrada (PR-2, PR-3, PR-4).
+        action_proposal:
+          $ref: '#/components/schemas/ActionProposal'
+          nullable: true
+
+    Citation:
+      type: object
+      required:
+        - chunk_id
+        - doc_code
+        - doc_title
+        - section
+        - version
+        - status
+        - excerpt
+      properties:
+        chunk_id:
+          type: string
+          description: Identificador determinista del fragmento en ChromaDB para trazabilidad y verificación.
+          example: GUI-INC-V2-SEC3-P1
+        doc_code:
+          type: string
+          description: Código normalizado del documento en el corpus oficial.
+          example: GUI-INC
+        doc_title:
+          type: string
+          description: Título formal del documento.
+          example: Guía Integral de Incorporación de Clientes
+        section:
+          type: string
+          description: Sección exacta donde se encuentra el extracto normativo.
+          example: "§3.2"
+        version:
+          type: string
+          description: Versión del documento fuente.
+          example: "v2.0"
+        status:
+          type: string
+          enum: [vigente, derogada, en_revision]
+          example: vigente
+        excerpt:
+          type: string
+          description: Extracto textual verificado contra el fragmento chunk_id recuperado de ChromaDB.
+          example: "La etapa de despliegue exige haber completado previamente las pruebas de integración en sandbox..."
+
+    McpTrace:
+      type: object
+      required:
+        - tool_name
+        - parameters
+        - execution_time_ms
+        - success
+      properties:
+        tool_name:
+          type: string
+          example: checklist_organizacion
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Parámetros sanitizados enviados a la herramienta. Nunca expone tokens ni secretos en texto plano.
+          example: {"org_id": "ORG-05"}
+        response_summary:
+          type: string
+          example: "10 tareas registradas (5 completadas, 1 en curso, 4 pendientes)"
+        execution_time_ms:
+          type: number
+          example: 14.2
+        success:
+          type: boolean
+          example: true
+        error:
+          type: string
+          nullable: true
+
+    ActionProposal:
+      type: object
+      required:
+        - action_type
+        - tarea_id
+        - org_id
+        - estado_actual
+        - estado_propuesto
+        - justificacion
+        - confirmation_token
+        - expires_at
+      properties:
+        action_type:
+          type: string
+          enum: [CAMBIO_ESTADO_TAREA]
+          example: CAMBIO_ESTADO_TAREA
+        tarea_id:
+          type: string
+          example: T-006
+        org_id:
+          type: string
+          example: ORG-05
+        estado_actual:
+          type: string
+          enum: [pendiente, en_curso, completada]
+          example: en_curso
+        estado_propuesto:
+          type: string
+          enum: [pendiente, en_curso, completada]
+          example: completada
+        justificacion:
+          type: string
+          description: Motivo o respaldo para el cambio propuesto.
+          example: "Se habilitó carpeta SFTP compartida y se verificó recepción de archivos según REQ-INT §4.1."
+        confirmation_token:
+          type: string
+          description: Token criptográfico efímero firmado por el backend (HMAC-SHA256, TTL 5 min).
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        expires_at:
+          type: string
+          format: date-time
+          example: "2026-11-07T12:05:00Z"
+
+    ActionPrepareRequest:
+      type: object
+      required:
+        - tarea_id
+        - nuevo_estado
+        - justificacion
+      properties:
+        tarea_id:
+          type: string
+          example: T-006
+        nuevo_estado:
+          type: string
+          enum: [pendiente, en_curso, completada]
+          example: completada
+        justificacion:
+          type: string
+          description: Justificación ingresada para la preparación del cambio.
+          example: "Se habilitó carpeta SFTP compartida y se verificó recepción de archivos."
+
+    ActionPrepareResponse:
+      type: object
+      required:
+        - proposal
+      properties:
+        proposal:
+          $ref: '#/components/schemas/ActionProposal'
+
+    ActionConfirmRequest:
+      type: object
+      required:
+        - confirmation_token
+      properties:
+        confirmation_token:
+          type: string
+          description: Token efímero firmado emitido en el flujo /api/action/prepare.
+
+    ActionConfirmResponse:
+      type: object
+      required:
+        - success
+        - evento_id
+        - tarea_id
+        - org_id
+        - nuevo_estado
+        - usuario_id
+        - fecha_cambio
+      properties:
+        success:
+          type: boolean
+          example: true
+        evento_id:
+          type: integer
+          example: 1
+        tarea_id:
+          type: string
+          example: T-006
+        org_id:
+          type: string
+          example: ORG-05
+        nuevo_estado:
+          type: string
+          enum: [pendiente, en_curso, completada]
+          example: completada
+        usuario_id:
+          type: string
+          example: U-I1
+        justificacion:
+          type: string
+          nullable: true
+          example: "Se habilitó carpeta SFTP compartida y se verificó recepción de archivos."
+        fecha_cambio:
+          type: string
+          format: date-time
+          example: "2026-11-07T12:01:23Z"
+
+    ApiError:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: FORBIDDEN_ORGANIZATION_ACCESS
+        message:
+          type: string
+          example: "El usuario U-I1 no tiene permisos de acceso sobre la organización ORG-06."
+        principle_violated:
+          type: string
+          nullable: true
+          example: PR-7
+        details:
+          type: object
+          additionalProperties: true
+          nullable: true

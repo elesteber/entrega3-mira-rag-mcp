@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MIRA CU-3 - FastMCP Tools Contract Specification",
+  "description": "Especificación del catálogo y esquemas JSON Schema Draft 2020-12 para las herramientas del servidor FastMCP (Caso de Uso CU-3: Asistente de Incorporación de Organizaciones). Distingue herramientas de consulta expuestas al modelo de lenguaje de herramientas protegidas de mutación reservadas para ejecución backend post-confirmación interactiva (PR-1, PR-5, PR-6, PR-7).",
+  "tools": [
+    {
+      "name": "buscar_reglas",
+      "category": "query",
+      "exposed_to_llm": true,
+      "description": "Recupera fragmentos normativos relevantes desde ChromaDB sobre los 5 documentos oficiales del CU-3 (GUI-INC v1 derogada, GUI-INC v2 vigente, POL-FOR, FIC-PLA, REQ-INT). Proporciona evidencia documental con chunk_id y metadatos unificados para citas verificables (PR-2).",
+      "parameters": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Consulta en lenguaje natural sobre políticas, plazos, requisitos técnicos o plantillas de incorporación."
+          },
+          "top_k": {
+            "type": "integer",
+            "default": 4,
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Número máximo de fragmentos relevantes a retornar."
+          },
+          "filtro_vigencia": {
+            "type": "string",
+            "enum": ["vigente", "todas"],
+            "default": "vigente",
+            "description": "Filtro de vigencia: 'vigente' excluye normas derogadas; 'todas' recupera versiones históricas para análisis comparativo de contradicciones normativas (PR-4)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "returns": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["total_found", "results"],
+        "properties": {
+          "total_found": {
+            "type": "integer"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["chunk_id", "doc_code", "doc_title", "section", "version", "status", "text", "similarity_score"],
+              "properties": {
+                "chunk_id": { "type": "string", "example": "GUI-INC-V2-SEC3-P1" },
+                "doc_code": { "type": "string", "example": "GUI-INC" },
+                "doc_title": { "type": "string", "example": "Guía Integral de Incorporación de Clientes" },
+                "section": { "type": "string", "example": "§3.2" },
+                "version": { "type": "string", "example": "v2.0" },
+                "status": { "type": "string", "enum": ["vigente", "derogada", "en_revision"] },
+                "text": { "type": "string" },
+                "similarity_score": { "type": "number" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "checklist_organizacion",
+      "category": "query",
+      "exposed_to_llm": true,
+      "description": "Consulta el listado de tareas y progreso de incorporación para una organización específica autorizada, resolviendo el estado efectivo sobre la vista v_tareas_estado_efectivo en SQLite. Requiere contexto de identidad validado en el servidor (PR-5, PR-7).",
+      "parameters": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["org_id"],
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "pattern": "^ORG-[0-9]{2}$",
+            "description": "Identificador de la organización a consultar (ej. ORG-05, ORG-06, ORG-07, ORG-08)."
+          },
+          "etapa": {
+            "type": ["string", "null"],
+            "enum": ["E0", "E1", "E2", "E3", "E4", "E5", null],
+            "description": "Filtro opcional por código de etapa del proceso (E0 a E5)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "returns": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["org_id", "organizacion_nombre", "estado_incorporacion", "resumen_progreso", "tareas"],
+        "properties": {
+          "org_id": { "type": "string" },
+          "organizacion_nombre": { "type": "string" },
+          "estado_incorporacion": { "type": "string" },
+          "resumen_progreso": {
+            "type": "object",
+            "required": ["total_tareas", "completadas", "en_curso", "pendientes", "porcentaje_avance"],
+            "properties": {
+              "total_tareas": { "type": "integer" },
+              "completadas": { "type": "integer" },
+              "en_curso": { "type": "integer" },
+              "pendientes": { "type": "integer" },
+              "porcentaje_avance": { "type": "number" }
+            },
+            "additionalProperties": false
+          },
+          "tareas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["tarea_id", "etapa", "descripcion", "obligatoria", "estado", "responsable", "fecha_limite", "observacion", "actualizado_por", "fecha_ultima_actualizacion"],
+              "properties": {
+                "tarea_id": { "type": "string", "example": "T-006" },
+                "etapa": { "type": "string", "enum": ["E0", "E1", "E2", "E3", "E4", "E5"] },
+                "descripcion": { "type": "string" },
+                "obligatoria": { "type": "string", "enum": ["sí", "no"] },
+                "estado": { "type": "string", "enum": ["pendiente", "en_curso", "completada"] },
+                "responsable": { "type": "string" },
+                "fecha_limite": { "type": "string" },
+                "observacion": { "type": ["string", "null"] },
+                "actualizado_por": { "type": ["string", "null"] },
+                "fecha_ultima_actualizacion": { "type": ["string", "null"] }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "listar_plantillas",
+      "category": "query",
+      "exposed_to_llm": true,
+      "description": "Consulta las plantillas de módulos preconfigurados del sistema MIRA (tabla plantillas en SQLite), detallando módulos incluidos, umbrales de aprobación sugeridos y requisitos biométricos.",
+      "parameters": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "plantilla_id": {
+            "type": ["string", "null"],
+            "enum": ["PLA-REM", "PLA-SIN", "PLA-CTA", "PLA-ADM", null],
+            "description": "Identificador opcional de plantilla a consultar."
+          }
+        },
+        "additionalProperties": false
+      },
+      "returns": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["plantillas"],
+        "properties": {
+          "plantillas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["plantilla_id", "nombre", "industria", "modulos", "umbral_aprobacion_sugerido", "umbral_revision_sugerido", "dias_adaptacion_estimados", "requiere_autorizacion_biometrica"],
+              "properties": {
+                "plantilla_id": { "type": "string", "example": "PLA-ADM" },
+                "nombre": { "type": "string" },
+                "industria": { "type": "string" },
+                "modulos": { "type": "string" },
+                "umbral_aprobacion_sugerido": { "type": "integer", "example": 80 },
+                "umbral_revision_sugerido": { "type": "integer", "example": 60 },
+                "dias_adaptacion_estimados": { "type": "integer", "example": 4 },
+                "requiere_autorizacion_biometrica": { "type": "string", "enum": ["sí", "no"], "example": "sí" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "consultar_integracion",
+      "category": "query",
+      "exposed_to_llm": true,
+      "description": "Obtiene la configuración técnica y métricas de integración para una organización autorizada (tabla integraciones en SQLite), incluyendo modo de conexión, entorno y telemetría de pruebas.",
+      "parameters": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["org_id"],
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "pattern": "^ORG-[0-9]{2}$",
+            "description": "Identificador de la organización."
+          }
+        },
+        "additionalProperties": false
+      },
+      "returns": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["integracion_id", "org_id", "modo", "ambiente", "estado", "casos_ejemplo_enviados", "llamadas_vuelta_exitosas", "max_llamadas_por_minuto_observado", "alerta_tecnica"],
+        "properties": {
+          "integracion_id": { "type": "string", "example": "I-03" },
+          "org_id": { "type": "string", "example": "ORG-07" },
+          "modo": { "type": "string", "enum": ["api_asincronica", "archivos"] },
+          "ambiente": { "type": "string", "enum": ["integracion", "produccion"] },
+          "estado": { "type": "string", "enum": ["en_configuracion", "en_prueba", "probada", "operativa"] },
+          "casos_ejemplo_enviados": { "type": "integer", "example": 20 },
+          "llamadas_vuelta_exitosas": { "type": "integer", "example": 14 },
+          "max_llamadas_por_minuto_observado": { "type": "integer", "example": 240, "description": "Tasa máxima observada (límite normativo contractual = 100 req/min según REQ-INT §5)." },
+          "alerta_tecnica": { "type": ["string", "null"], "example": "Supera límite normativo de 100 req/min y registra fallos de callback." }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "consultar_formularios",
+      "category": "query",
+      "exposed_to_llm": true,
+      "description": "Consulta los formularios y campos personalizados definidos por una organización autorizada (tabla formularios_propios en SQLite), indicando conteo de muestras y estado de revisión.",
+      "parameters": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["org_id"],
+        "properties": {
+          "org_id": {
+            "type": "string",
+            "pattern": "^ORG-[0-9]{2}$",
+            "description": "Identificador de la organización."
+          }
+        },
+        "additionalProperties": false
+      },
+      "returns": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["org_id", "formularios"],
+        "properties": {
+          "org_id": { "type": "string" },
+          "formularios": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["formulario_id", "org_id", "nombre", "ejemplos_recibidos", "fecha_ejemplos_completos", "estado"],
+              "properties": {
+                "formulario_id": { "type": "string", "example": "F-01" },
+                "org_id": { "type": "string", "example": "ORG-07" },
+                "nombre": { "type": "string", "example": "Ficha de ingreso Valle Verde" },
+                "ejemplos_recibidos": { "type": "integer", "example": 12 },
+                "fecha_ejemplos_completos": { "type": ["string", "null"] },
+                "estado": { "type": "string", "enum": ["recibido", "en_ajuste", "operativo"] }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "marcar_tarea",
+      "category": "mutation",
+      "exposed_to_llm": false,
+      "description": "HERRAMIENTA PROTEGIDA DE MUTACIÓN. NO EXPUESTA AL LLM. Exclusivamente invocada por el backend tras confirmación humana interactiva en dos pasos (PR-1, PR-6). Registra un evento en tarea_eventos_cambio dentro de una transacción atómica SQLite con hash anti-replay. Revalida firma, identidad, permisos y precondiciones de negocio.",
+      "parameters": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["tarea_id", "nuevo_estado", "token_confirmacion"],
+        "properties": {
+          "tarea_id": {
+            "type": "string",
+            "pattern": "^T-[0-9]{3}$",
+            "description": "Identificador de la tarea a actualizar (ej. T-006)."
+          },
+          "nuevo_estado": {
+            "type": "string",
+            "enum": ["pendiente", "en_curso", "completada"],
+            "description": "Nuevo estado propuesto y confirmado para la tarea."
+          },
+          "justificacion": {
+            "type": ["string", "null"],
+            "maxLength": 500,
+            "description": "Justificación documentada del cambio de estado."
+          },
+          "token_confirmacion": {
+            "type": "string",
+            "description": "Token criptográfico efímero firmado por el backend (HMAC-SHA256, TTL 5 min). Nunca se expone al LLM ni en trazas públicas."
+          }
+        },
+        "additionalProperties": false
+      },
+      "returns": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["success", "evento_id", "tarea_id", "org_id", "nuevo_estado", "fecha_cambio"],
+        "properties": {
+          "success": { "type": "boolean" },
+          "evento_id": { "type": "integer" },
+          "tarea_id": { "type": "string" },
+          "org_id": { "type": "string" },
+          "nuevo_estado": { "type": "string", "enum": ["pendiente", "en_curso", "completada"] },
+          "justificacion": { "type": ["string", "null"] },
+          "fecha_cambio": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    }
+  ]
+}
