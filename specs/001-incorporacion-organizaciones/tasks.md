@@ -31,7 +31,7 @@
 - [ ] T001 [P] [Lester González] Configurar `pyproject.toml` con dependencias del proyecto (`fastapi>=0.115`, `uvicorn>=0.30`, `fastmcp>=0.4`, `google-genai>=0.1`, `chromadb>=0.5`, `sentence-transformers`, `pydantic>=2.0`, `pyjwt`, `pytest`, `pytest-asyncio`) y scripts de ejecución con `uv`.
 - [ ] T002 [P] [Jorge Álvarez] Revisar e integrar el scaffolding existente en la rama `feat/frontend-chat-ui` dentro de `frontend/` (`package.json`, `vite.config.ts`, `tsconfig.json`, TailwindCSS, `lucide-react`) sin sobrescribir código previo.
 - [ ] T003 [P] [Rodrigo Guerrero] Crear módulo de configuración de base de datos relacional y conexión con thread-safety en `backend/data/db.py` apuntando a `backend/data/mira_cu3.db`.
-- [ ] T004 [P] [Ángel Salgado] Verificar rutas y lectura de los 5 archivos del corpus oficial en `backend/rag/verify_corpus.py` comprobando la presencia intacta de los archivos en `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus/`.
+- [X] T004 [P] [Ángel Salgado] Verificar rutas y lectura de los 5 archivos del corpus oficial en `backend/rag/verify_corpus.py` comprobando la presencia intacta de los archivos en `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus/`.
 
 ---
 

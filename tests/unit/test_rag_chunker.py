@@ -111,3 +111,24 @@ def test_bm25_prefiere_coincidencia_literal():
 
 def test_fusion_rrf_combina_rankings():
     assert fusion_rrf([["a", "b", "c"], ["c", "a"]]) == ["a", "c", "b"]
+
+
+def test_corpus_intacto_respecto_del_kit():
+    from backend.rag.verify_corpus import verificar
+
+    assert verificar() == []
+
+
+def test_verificacion_detecta_documento_modificado(tmp_path):
+    import shutil
+
+    from backend.rag.indexer import CORPUS_DIR_DEFECTO
+    from backend.rag.verify_corpus import verificar
+
+    for archivo in CORPUS_DIR_DEFECTO.glob("*.md"):
+        shutil.copy(archivo, tmp_path / archivo.name)
+    (tmp_path / "POL-FOR_formularios_propios.md").write_text("alterado", encoding="utf-8")
+    (tmp_path / "GUI-INC_v1_derogada.md").unlink()
+    problemas = verificar(tmp_path)
+    assert any("POL-FOR" in p and "modificado" in p for p in problemas)
+    assert any("Falta GUI-INC_v1_derogada.md" in p for p in problemas)

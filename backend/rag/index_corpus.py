@@ -13,8 +13,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
 from backend.rag.indexer import ESTRATEGIAS, SOLAPE_FIJO_DEFECTO, TAMANO_FIJO_DEFECTO, indexar, resolver_persist_dir
+from backend.rag.verify_corpus import verificar
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -23,7 +25,14 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--tamano", type=int, default=TAMANO_FIJO_DEFECTO, help="palabras por fragmento (estrategia fijo)")
     parser.add_argument("--solape", type=int, default=SOLAPE_FIJO_DEFECTO, help="palabras de solapamiento (estrategia fijo)")
     parser.add_argument("--persist-dir", default=None, help="directorio de ChromaDB (por defecto CHROMA_PERSIST_DIRECTORY)")
+    parser.add_argument("--sin-verificar", action="store_true", help="omite la verificación de integridad del corpus (T004)")
     args = parser.parse_args(argv)
+
+    if not args.sin_verificar:
+        problemas = verificar()
+        if problemas:
+            print("No se indexa: el corpus no coincide con el kit original.\n  - " + "\n  - ".join(problemas))
+            sys.exit(1)
 
     estrategias = ESTRATEGIAS if args.estrategia == "todas" else (args.estrategia,)
     for estrategia in estrategias:
