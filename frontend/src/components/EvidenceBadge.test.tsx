@@ -43,4 +43,3 @@ describe('EvidenceBadge Component (T022)', () => {
     expect(badge.className).toContain('text-rose-800')
   })
 })
-

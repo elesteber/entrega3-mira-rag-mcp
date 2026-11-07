@@ -168,4 +168,3 @@ export function SessionSelector({ onSessionChange, className = '' }: SessionSele
     </header>
   )
 }
-
