@@ -2,8 +2,15 @@
 
 Este directorio alojará la batería de pruebas automatizadas y el framework de evaluación cuantitativa del asistente RAG + MCP.
 
-> **Estado actual:** PREPARACIÓN DOCUMENTAL PREVIA A SPEC KIT.  
-> Los casos de prueba automatizados y scripts de evaluación se implementarán una vez definidos los contratos y especificaciones.
+> **Estado actual (2026-11-07):** golden set v1.0 fijado en `evaluation/goldenset_cases.json`; pruebas del RAG y evaluación de recuperación implementadas. Pendiente: evaluación de generación de punta a punta (`evaluation/eval_goldenset.py`) cuando exista el orquestador.
+
+| Ruta | Contenido | Comando |
+|---|---|---|
+| `unit/test_goldenset.py` | Composición del golden set y anclas literales en el corpus | `uv run pytest tests/unit` |
+| `unit/test_rag_chunker.py` | Metadatos, fragmentación, BM25 y RRF (sin modelo) | `uv run pytest tests/unit` |
+| `integration/test_rag_buscar_reglas.py` | Indexación reproducible y contrato de `buscar_reglas` | `uv run pytest -m modelo` |
+| `evaluation/eval_recuperacion.py` | Recall@k, MRR y experimento de fragmentación | `uv run python -m tests.evaluation.eval_recuperacion` |
+| `evaluation/resultados/` | Resultados reales de cada corrida (JSON + Markdown) | — |
 
 ---
 

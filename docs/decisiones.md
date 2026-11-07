@@ -15,6 +15,7 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - [ADR-07: Protocolo de Confirmación Humana en Dos Fases para Mutaciones](#adr-07-protocolo-de-confirmación-humana-en-dos-fases-para-mutaciones)
 - [ADR-08: Uso de uv para Gestión de Entornos y Dependencias Python](#adr-08-uso-de-uv-para-gestión-de-entornos-y-dependencias-python)
 - [ADR-10: Golden Set con Anclas Literales y Conflictos Vigentes del Corpus](#adr-10-golden-set-con-anclas-literales-y-conflictos-vigentes-del-corpus)
+- [ADR-11: Fragmentación por Encabezados, 256 Tokens y Búsqueda Híbrida](#adr-11-fragmentación-por-encabezados-256-tokens-y-búsqueda-híbrida)
 
 ---
 
@@ -112,3 +113,30 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - **Decisión:** (1) Usar como conflictos vigentes `FIC-PLA v1 §1` vs `POL-FOR v1 §2` y `GUI-INC v2 §1` vs `POL-FOR v1 §2`; conservar PLA-ADM como caso adicional `conflicto_documento_datos`. (2) Identificar cada fragmento esperado con `doc_code`, `version`, `section` y una cita literal ("ancla") única en el corpus; un fragmento recuperado acierta si es del mismo documento y versión y contiene el ancla.
 - **Justificación:** Las anclas hacen la métrica independiente de la estrategia de chunking (necesario para el experimento comparativo del criterio C3) y verificables automáticamente (`tests/unit/test_goldenset.py`).
 - **Alternativas consideradas:** Identificar fragmentos por `chunk_id` (se acopla a una estrategia de chunking concreta); usar PLA-ADM como conflicto vigente (no cumple la definición de la pauta).
+
+---
+
+### ADR-11: Fragmentación por Encabezados, 256 Tokens y Búsqueda Híbrida
+- **Fecha:** 2026-11-07
+- **Estado:** **Propuesta** (pendiente de revisión por pares)
+- **Contexto:** El criterio C3 exige elegir la fragmentación con un experimento comparativo y justificar la búsqueda. El modelo `paraphrase-multilingual-MiniLM-L12-v2` trunca a 128 tokens por defecto.
+- **Experimento:** `tests/evaluation/eval_recuperacion.py` sobre el golden set v1.0 (21 casos sin MCP), 10 configuraciones = {encabezados, fijo 150/40 palabras, fijo 60/15 palabras} × {128, 256 tokens} × {denso, híbrido}. Resultados en `tests/evaluation/resultados/recuperacion_20261107-025237.md`.
+
+  | Configuración | Recall@1 | Recall@4 | MRR | Conflicto@4 | Truncados |
+  |---|---|---|---|---|---|
+  | Encabezados, 128, denso (línea base) | 0.77 | 0.85 | 0.82 | 0.50 | 11/24 |
+  | **Encabezados, 256, híbrido (elegida)** | 0.69 | **1.00** | 0.81 | 0.75 | 0/24 |
+  | Fijo 150/40, 256, híbrido | 0.62 | 1.00 | 0.76 | 0.75 | 4/14 |
+  | Fijo 60/15, 128, híbrido | 0.62 | 0.85 | 0.71 | 1.00 | 1/36 |
+
+- **Decisión:** Fragmentar por encabezados Markdown (subsección `###` en FIC-PLA §2), vectorizar con `max_seq_length=256` y buscar en modo híbrido (denso + BM25, fusión RRF con k=60, sin ajustar). El umbral de similitud se aplica por consulta, no por fragmento.
+- **Justificación:**
+  1. Encabezados + híbrido alcanza Recall@4 = 1.00 en las 13 preguntas con respuesta y no trunca ningún fragmento.
+  2. Cada fragmento corresponde a una sección, por lo que la cita (documento, sección, versión) es exacta. Los fragmentos fijos cruzan secciones (`§2–§3`), lo que vuelve imprecisa la cita (PR-2).
+  3. La búsqueda densa sola pierde términos exactos (código `PLA-CTA`, etapa `E3`); BM25 los recupera (GS-03 y GS-10 pasan de fallar a acertar).
+  4. El umbral por fragmento eliminaba evidencia correcta (ficha PLA-CTA, similitud 0.32, en el puesto 4 del ranking híbrido).
+- **Limitaciones y hallazgos:**
+  - La configuración se eligió con el mismo golden set con que se mide (no hay conjunto separado); se informa como limitación.
+  - El umbral de similitud **no** sirve para la abstención: la mayor similitud de una pregunta sin respuesta fue 0.56, mientras que la de una pregunta con respuesta bajó a 0.45. La abstención (PR-3) debe decidirla el orquestador al juzgar si los fragmentos responden la pregunta.
+  - Fallo de recuperación pendiente: GS-18 (conflicto) no recupera `FIC-PLA v1 §1` en el top-10, así que el asistente podría no detectar ese conflicto.
+- **Alternativas consideradas:** Fragmentos de tamaño fijo (cita imprecisa, Recall@1 menor); solo denso (Recall@4 0.85); solo BM25 (Recall@4 1.00 en una prueba exploratoria, pero frágil ante paráfrasis, porque las preguntas del golden set comparten vocabulario con el corpus).
