@@ -132,3 +132,10 @@ def test_verificacion_detecta_documento_modificado(tmp_path):
     problemas = verificar(tmp_path)
     assert any("POL-FOR" in p and "modificado" in p for p in problemas)
     assert any("Falta GUI-INC_v1_derogada.md" in p for p in problemas)
+
+
+def test_prefijo_bm25_opcional(monkeypatch):
+    monkeypatch.setenv("RAG_BM25_PREFIJO", "6")
+    assert tokenizar("reconocen documentos") == ["recono", "docume"]
+    monkeypatch.delenv("RAG_BM25_PREFIJO")
+    assert tokenizar("reconocen documentos") == ["reconocen", "documentos"]

@@ -8,6 +8,7 @@ pierden términos exactos como códigos de plantilla (``PLA-CTA``) o etapas
 from __future__ import annotations
 
 import math
+import os
 import re
 import unicodedata
 from collections import Counter
@@ -19,11 +20,18 @@ PALABRAS_VACIAS = frozenset(
 )
 
 
+def prefijo_bm25() -> int:
+    """Truncado de tokens a N caracteres (stemming por prefijo). 0 = desactivado (por defecto, ADR-11)."""
+    return int(os.environ.get("RAG_BM25_PREFIJO", "0"))
+
+
 def tokenizar(texto: str) -> list[str]:
     """Minúsculas, sin tildes, solo alfanuméricos; descarta palabras vacías y de una letra."""
     plano = unicodedata.normalize("NFKD", texto.lower())
     plano = "".join(c for c in plano if not unicodedata.combining(c))
-    return [t for t in re.findall(r"[a-z0-9]+", plano) if len(t) > 1 and t not in PALABRAS_VACIAS]
+    tokens = [t for t in re.findall(r"[a-z0-9]+", plano) if len(t) > 1 and t not in PALABRAS_VACIAS]
+    n = prefijo_bm25()
+    return [t[:n] for t in tokens] if n else tokens
 
 
 class BM25:

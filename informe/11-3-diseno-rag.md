@@ -55,4 +55,5 @@ Se compararon 10 configuraciones con el golden set: fragmentación por encabezad
 
 - La configuración se eligió con el mismo golden set con que se mide, porque no hay un conjunto separado.
 - Las preguntas del golden set comparten vocabulario con el corpus, lo que favorece a BM25.
+- Para corregir GS-18 se probó *stemming* por prefijo en BM25. El fragmento sube al puesto 9 pero sigue fuera del top-4, así que no se adoptó (ADR-11).
 - Está pendiente decidir si se agregan capítulos de la Descripción de MIRA al corpus (opcional según la pauta §4.1).

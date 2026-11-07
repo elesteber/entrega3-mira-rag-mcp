@@ -58,3 +58,10 @@ Comportamiento esperado: responder con la versión vigente e indicar que la ante
 ## Resultados vigentes de recuperación
 
 Última corrida: `resultados/recuperacion_20261107-025237.md`. La configuración elegida (encabezados, 256 tokens, híbrida) obtiene Recall@4 = 1.00 con respuesta, 0.75 en conflictos y 1.00 en versión. Fallo conocido: GS-18 no recupera C-1 / `FIC-PLA §1` (ver ADR-11).
+
+### Ciclo de mejora de recuperación
+
+| Iteración | Cambio | Efecto medido | Decisión |
+|---|---|---|---|
+| 0 → 1 | Denso → híbrido (BM25 + RRF), 128 → 256 tokens | Recall@4 0.85 → 1.00; GS-03 y GS-10 corregidos | Adoptado (ADR-11) |
+| 1 → 2 | Stemming por prefijo 6 en BM25 | Recall@3 0.92 → 1.00; GS-18 sube al puesto 9 (sigue fallando) | No adoptado: ganancia marginal sobre el mismo golden set |

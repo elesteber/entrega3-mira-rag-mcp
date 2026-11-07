@@ -194,7 +194,10 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--configs", nargs="+", default=list(CONFIGURACIONES), choices=list(CONFIGURACIONES))
     parser.add_argument("--ks", nargs="+", type=int, default=[1, 3, 4, 5])
     parser.add_argument("--sin-guardar", action="store_true", help="no escribe archivos de resultados")
+    parser.add_argument("--prefijo-bm25", type=int, default=None, help="stemming por prefijo en BM25 (ciclo de mejora, ADR-11)")
     args = parser.parse_args(argv)
+    if args.prefijo_bm25 is not None:
+        os.environ["RAG_BM25_PREFIJO"] = str(args.prefijo_bm25)
 
     if 4 not in args.ks:
         args.ks = sorted({*args.ks, 4})
@@ -218,6 +221,7 @@ def main(argv: list[str] | None = None) -> None:
         "fecha": datetime.now().isoformat(timespec="seconds"),
         "golden_set_version": golden["version_golden_set"],
         "modelo": nombre_modelo(),
+        "prefijo_bm25": os.environ.get("RAG_BM25_PREFIJO", "0"),
         "casos_evaluados": len(casos),
         "ks": args.ks,
         "resultados": resultados,
