@@ -1,16 +1,23 @@
 """
-Herramienta FastMCP buscar_reglas (STUB coordinado según contracts/mcp-tools.json).
+Herramienta FastMCP buscar_reglas (T010) según contracts/mcp-tools.json.
 MIRA CU-3 - Asistente de Incorporación de Organizaciones.
 
-NOTA DE COORDINACIÓN:
-Esta herramienta corresponde a la tarea T010 asignada a Ángel Salgado (Especialista RAG y Evaluación).
-Se expone este stub con la firma y esquemas contractuales acordados para permitir el registro modular
-y la inicialización completa del servidor FastMCP (T007).
+Envuelve la consulta del RAG (backend/rag/retriever.py). No accede a SQLite ni
+requiere organización: la documentación normativa es consultable por todos los
+roles, incluido el comercial (FR-017).
+
+Si el índice ChromaDB no existe, falla con un error explícito en vez de devolver
+una lista vacía: una lista vacía significa "sin evidencia" y haría que el
+asistente se abstuviera en silencio por un problema de configuración.
 """
 
 from __future__ import annotations
 
 from typing import Any, Literal
+
+
+class IndiceRagNoDisponible(RuntimeError):
+    """El índice ChromaDB no fue generado o no se puede abrir."""
 
 
 def buscar_reglas(
@@ -22,19 +29,18 @@ def buscar_reglas(
     Recupera fragmentos normativos relevantes desde ChromaDB sobre los 5 documentos oficiales del CU-3
     (GUI-INC v1 derogada, GUI-INC v2 vigente, POL-FOR, FIC-PLA, REQ-INT).
     Proporciona evidencia documental con chunk_id y metadatos unificados para citas verificables (PR-2).
-
-    NOTA: Stub temporal mientras Ángel Salgado finaliza la indexación en ChromaDB (T008, T009, T010).
+    Con filtro_vigencia='vigente' excluye normas derogadas; 'todas' las incluye para comparar versiones (PR-4).
+    Una lista de resultados vacía indica que no hay evidencia en el corpus (PR-3).
     """
-    # Intentar delegar si existe retriever implementado en backend.rag
-    try:
-        from backend.rag.retriever import retrieve_chunks  # type: ignore
-        return retrieve_chunks(query=query, top_k=top_k, filtro_vigencia=filtro_vigencia)
-    except (ImportError, ModuleNotFoundError):
-        # Stub documentado conforme a contracts/mcp-tools.json
-        return {
-            "total_found": 0,
-            "results": [],
-            "_stub_status": "PENDIENTE_DE_COORDINACION_CON_ANGEL_SALGADO",
-            "_note": "Índice ChromaDB en proceso de generación offline por Ángel Salgado (T008, T009).",
-        }
+    from backend.rag import retriever
 
+    try:
+        recuperador = retriever.obtener_recuperador()
+    except Exception as err:  # colección inexistente o directorio sin índice
+        raise IndiceRagNoDisponible(
+            "Índice RAG no disponible: ejecute 'uv run python -m backend.rag.index_corpus' "
+            f"antes de levantar el servidor MCP ({type(err).__name__}: {err})."
+        ) from err
+
+    del recuperador  # buscar_reglas reutiliza la instancia ya cacheada
+    return retriever.buscar_reglas(query, top_k=top_k, filtro_vigencia=filtro_vigencia)
