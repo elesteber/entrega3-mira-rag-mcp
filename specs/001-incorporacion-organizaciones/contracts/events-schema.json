@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MIRA CU-3 - Tarea Event Store Schema",
+  "description": "Especificación JSON Schema Draft 2020-12 para el almacén de eventos de mutación de tareas (tarea_eventos_cambio) y la vista de estado efectivo (v_tareas_estado_efectivo) en SQLite. Garantiza la inmutabilidad de los datos entregados en CU-3_datos.xlsx y la trazabilidad criptográfica de cambios (PR-1, PR-6).",
+  "$defs": {
+    "TareaEventoCambio": {
+      "type": "object",
+      "required": [
+        "evento_id",
+        "tarea_id",
+        "org_id",
+        "estado_anterior",
+        "nuevo_estado",
+        "usuario_id",
+        "rol_usuario",
+        "token_hash",
+        "fecha_cambio"
+      ],
+      "properties": {
+        "evento_id": {
+          "type": "integer",
+          "description": "Identificador secuencial autoincremental del evento en SQLite (PRIMARY KEY AUTOINCREMENT)."
+        },
+        "tarea_id": {
+          "type": "string",
+          "pattern": "^T-[0-9]{3}$",
+          "description": "Identificador de la tarea afectada (FK -> tareas.tarea_id)."
+        },
+        "org_id": {
+          "type": "string",
+          "pattern": "^ORG-[0-9]{2}$",
+          "description": "Identificador de la organización propietaria de la tarea, verificado contra tareas.org_id."
+        },
+        "estado_anterior": {
+          "type": "string",
+          "enum": ["pendiente", "en_curso", "completada"],
+          "description": "Estado efectivo que tenía la tarea inmediatamente antes de este evento."
+        },
+        "nuevo_estado": {
+          "type": "string",
+          "enum": ["pendiente", "en_curso", "completada"],
+          "description": "Nuevo estado confirmado explícitamente por el usuario humano."
+        },
+        "usuario_id": {
+          "type": "string",
+          "enum": ["U-I1", "U-I2", "U-I3", "U-I4"],
+          "description": "Identificador del usuario en sesión que confirmó la mutación."
+        },
+        "rol_usuario": {
+          "type": "string",
+          "enum": ["ejecutivo_implementacion", "jefe_implementacion", "comercial"],
+          "description": "Rol del usuario al momento de confirmar."
+        },
+        "justificacion": {
+          "type": ["string", "null"],
+          "maxLength": 500,
+          "description": "Motivo o respaldo ingresado para el cambio de estado."
+        },
+        "token_hash": {
+          "type": "string",
+          "description": "Hash SHA-256 del token efímero HMAC para garantizar uso único (anti-replay) sin registrar secretos en texto plano."
+        },
+        "fecha_cambio": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Marca de tiempo UTC en formato ISO-8601 del registro atómico del evento."
+        }
+      },
+      "additionalProperties": false
+    },
+    "TareaEstadoEfectivo": {
+      "type": "object",
+      "required": [
+        "tarea_id",
+        "org_id",
+        "etapa",
+        "descripcion",
+        "obligatoria",
+        "estado",
+        "responsable",
+        "fecha_limite",
+        "observacion",
+        "fecha_ultima_actualizacion",
+        "actualizado_por"
+      ],
+      "properties": {
+        "tarea_id": {
+          "type": "string",
+          "pattern": "^T-[0-9]{3}$",
+          "example": "T-006"
+        },
+        "org_id": {
+          "type": "string",
+          "pattern": "^ORG-[0-9]{2}$",
+          "example": "ORG-05"
+        },
+        "etapa": {
+          "type": "string",
+          "enum": ["E0", "E1", "E2", "E3", "E4", "E5"],
+          "example": "E3"
+        },
+        "descripcion": {
+          "type": "string",
+          "example": "Configurar intercambio de archivos con el sistema central"
+        },
+        "obligatoria": {
+          "type": "string",
+          "enum": ["sí", "no"],
+          "example": "sí"
+        },
+        "estado": {
+          "type": "string",
+          "enum": ["pendiente", "en_curso", "completada"],
+          "description": "Estado efectivo actual resultante de COALESCE(ultimo_evento.nuevo_estado, tarea_original.estado)."
+        },
+        "responsable": {
+          "type": "string",
+          "enum": ["U-I1", "U-I2", "U-I3"],
+          "example": "U-I1"
+        },
+        "fecha_limite": {
+          "type": "string",
+          "example": "2026-10-22"
+        },
+        "observacion": {
+          "type": ["string", "null"],
+          "example": "El sistema central no expone servicios web"
+        },
+        "fecha_ultima_actualizacion": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "actualizado_por": {
+          "type": ["string", "null"],
+          "example": "U-I1"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
