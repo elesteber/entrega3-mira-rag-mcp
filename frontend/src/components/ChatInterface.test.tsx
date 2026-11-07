@@ -242,4 +242,3 @@ describe('ChatInterface Component (T028)', () => {
     })
   })
 })
-

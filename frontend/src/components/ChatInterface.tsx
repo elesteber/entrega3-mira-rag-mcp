@@ -175,11 +175,10 @@ export function ChatInterface({
               className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
-                  msg.role === 'user'
-                    ? 'rounded-br-none bg-indigo-600 text-white'
-                    : 'rounded-bl-none border border-slate-200 bg-slate-50 text-slate-900'
-                }`}
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${msg.role === 'user'
+                  ? 'rounded-br-none bg-indigo-600 text-white'
+                  : 'rounded-bl-none border border-slate-200 bg-slate-50 text-slate-900'
+                  }`}
               >
                 {msg.role === 'user' ? (
                   <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -300,4 +299,3 @@ export function ChatInterface({
 }
 
 export default ChatInterface
-
