@@ -14,6 +14,7 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - [ADR-06: Selección del Modelo Generativo Gemini Flash](#adr-06-selección-del-modelo-generativo-gemini-flash)
 - [ADR-07: Protocolo de Confirmación Humana en Dos Fases para Mutaciones](#adr-07-protocolo-de-confirmación-humana-en-dos-fases-para-mutaciones)
 - [ADR-08: Uso de uv para Gestión de Entornos y Dependencias Python](#adr-08-uso-de-uv-para-gestión-de-entornos-y-dependencias-python)
+- [ADR-10: Golden Set con Anclas Literales y Conflictos Vigentes del Corpus](#adr-10-golden-set-con-anclas-literales-y-conflictos-vigentes-del-corpus)
 
 ---
 
@@ -101,3 +102,13 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - **Decisión:** Utilizar `uv` como gestor de paquetes y entornos virtuales.
 - **Justificación:** Es un orden de magnitud más rápido que pip/poetry, genera archivos de bloqueo deterministas (`uv.lock`) y garantiza reproducibilidad entre sistemas operativos.
 - **Alternativas consideradas:** Poetry / pip tradicional.
+
+---
+
+### ADR-10: Golden Set con Anclas Literales y Conflictos Vigentes del Corpus
+- **Fecha:** 2026-11-07
+- **Estado:** **Propuesta** (pendiente de revisión por pares y validación del cliente)
+- **Contexto:** La pauta (§7.1) exige 2 preguntas con conflicto entre fuentes *vigentes* y medir Recall@k a nivel de fragmento. `research.md §7.2` dejó pendiente identificar esos conflictos, y el caso PLA-ADM (85 vs 80) es un conflicto documento-datos.
+- **Decisión:** (1) Usar como conflictos vigentes `FIC-PLA v1 §1` vs `POL-FOR v1 §2` y `GUI-INC v2 §1` vs `POL-FOR v1 §2`; conservar PLA-ADM como caso adicional `conflicto_documento_datos`. (2) Identificar cada fragmento esperado con `doc_code`, `version`, `section` y una cita literal ("ancla") única en el corpus; un fragmento recuperado acierta si es del mismo documento y versión y contiene el ancla.
+- **Justificación:** Las anclas hacen la métrica independiente de la estrategia de chunking (necesario para el experimento comparativo del criterio C3) y verificables automáticamente (`tests/unit/test_goldenset.py`).
+- **Alternativas consideradas:** Identificar fragmentos por `chunk_id` (se acopla a una estrategia de chunking concreta); usar PLA-ADM como conflicto vigente (no cumple la definición de la pauta).
