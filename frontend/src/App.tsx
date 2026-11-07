@@ -84,21 +84,21 @@ export function App() {
           <button
             type="button"
             onClick={() => setNotification(null)}
-            className="text-emerald-700 hover:text-emerald-900"
+            className="rounded p-1 text-emerald-700 hover:text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
             aria-label="Cerrar notificación"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </aside>
       )}
 
-      {/* Área principal con dos columnas responsivas */}
-      <main className="mx-auto flex-1 max-w-7xl w-full p-4 sm:p-6">
+      {/* Área principal con dos columnas responsivas (móvil de 375 px y escritorio) */}
+      <main className="mx-auto flex-1 max-w-7xl w-full p-3 sm:p-4 md:p-6 min-w-0">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Columna izquierda: ChatInterface */}
           <section
             aria-label="Chat con el asistente"
-            className="flex flex-col lg:col-span-2"
+            className="flex flex-col lg:col-span-2 min-w-0 h-[600px] lg:h-[calc(100vh-160px)]"
           >
             <ChatInterface
               key={currentUser?.usuario_id ?? 'initial-session'}
@@ -108,10 +108,10 @@ export function App() {
             />
           </section>
 
-          {/* Columna derecha: Panel de Trazas MCP (debajo en pantallas pequeñas) */}
+          {/* Columna derecha: Panel de Trazas MCP (debajo en pantallas pequeñas y responsive en 375px) */}
           <McpTracePanel
             traces={activeTraces}
-            className="lg:col-span-1 h-[calc(100vh-140px)] min-h-[300px]"
+            className="lg:col-span-1 min-w-0 h-[480px] lg:h-[calc(100vh-160px)]"
           />
         </div>
       </main>

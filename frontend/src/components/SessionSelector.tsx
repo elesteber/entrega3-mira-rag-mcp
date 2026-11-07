@@ -102,7 +102,7 @@ export function SessionSelector({ onSessionChange, className = '' }: SessionSele
               disabled={loading || switching}
               value={activeUser?.usuario_id || ''}
               onChange={(e) => void handleUserChange(e.target.value)}
-              className="rounded-md border border-slate-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
+              className="rounded-md border border-slate-300 bg-white py-1.5 pl-3 pr-8 text-sm font-medium text-slate-800 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {loading && <option value="">Cargando usuarios...</option>}
               {users.map((user) => (
