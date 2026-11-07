@@ -28,7 +28,7 @@
 
 **Propósito**: Inicialización de entornos de desarrollo, dependencias declaradas y configuración base para permitir trabajo paralelo de los 4 integrantes.
 
-- [ ] T001 [P] [Lester González] Configurar `pyproject.toml` con dependencias del proyecto (`fastapi>=0.115`, `uvicorn>=0.30`, `fastmcp>=0.4`, `google-genai>=0.1`, `chromadb>=0.5`, `sentence-transformers`, `pydantic>=2.0`, `pyjwt`, `pytest`, `pytest-asyncio`) y scripts de ejecución con `uv`.
+- [x] T001 [P] [Lester González] Configurar `pyproject.toml` con dependencias del proyecto (`fastapi>=0.115`, `uvicorn>=0.30`, `fastmcp>=0.4`, `google-genai>=0.1`, `chromadb>=0.5`, `sentence-transformers`, `pydantic>=2.0`, `pyjwt`, `pytest`, `pytest-asyncio`) y scripts de ejecución con `uv`.
 - [ ] T002 [P] [Jorge Álvarez] Revisar e integrar el scaffolding existente en la rama `feat/frontend-chat-ui` dentro de `frontend/` (`package.json`, `vite.config.ts`, `tsconfig.json`, TailwindCSS, `lucide-react`) sin sobrescribir código previo.
 - [ ] T003 [P] [Rodrigo Guerrero] Crear módulo de configuración de base de datos relacional y conexión con thread-safety en `backend/data/db.py` apuntando a `backend/data/mira_cu3.db`.
 - [ ] T004 [P] [Ángel Salgado] Verificar rutas y lectura de los 5 archivos del corpus oficial en `backend/rag/verify_corpus.py` comprobando la presencia intacta de los archivos en `archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus/`.
@@ -47,8 +47,8 @@
 - [ ] T008 [P] [Ángel Salgado] Implementar pipeline de chunking jerárquico determinista y persistencia en ChromaDB en `backend/rag/indexer.py` asegurando la generación y asignación de `chunk_id` determinista (`doc_code`, `version`, `section`, `status`).
 - [ ] T009 [Ángel Salgado] Crear script ejecutable de indexación offline en `backend/rag/index_corpus.py` que cargue y vectorice los 5 documentos en `backend/rag/chroma_db` usando `paraphrase-multilingual-MiniLM-L12-v2`.
 - [ ] T010 [P] [Ángel Salgado] Implementar herramienta FastMCP `buscar_reglas` en `backend/mcp/tools/rag_tools.py` con filtros por vigencia (`vigente`, `todas`) y retorno de `chunk_id` estructurado según `contracts/mcp-tools.json`.
-- [ ] T011 [P] [Lester González] Configurar carga de entorno y configuración centralizada con Pydantic Settings en `backend/app/config.py` (`GEMINI_API_KEY`, `GEMINI_MODEL`, `SQLITE_DB_PATH`, `CHROMADB_PATH`, `JWT_SECRET`).
-- [ ] T012 [P] [Lester González] Implementar módulo de seguridad y emisión de tokens de sesión demo firmados HMAC en `backend/app/security.py` para los 4 usuarios reales del kit (`U-I1`, `U-I2`, `U-I3`, `U-I4`).
+- [x] T011 [P] [Lester González] Configurar carga de entorno y configuración centralizada con Pydantic Settings en `backend/app/config.py` (`GEMINI_API_KEY`, `GEMINI_MODEL`, `SQLITE_DB_PATH`, `CHROMADB_PATH`, `JWT_SECRET`).
+- [x] T012 [P] [Lester González] Implementar módulo de seguridad y emisión de tokens de sesión demo firmados HMAC en `backend/app/security.py` para los 4 usuarios reales del kit (`U-I1`, `U-I2`, `U-I3`, `U-I4`).
 - [ ] T013 [Lester González] Implementar cliente MCP asíncrono en `backend/mcp/client.py` para invocar herramientas del servidor FastMCP (`server.py`) inyectando el contexto de sesión confiable del operador.
 - [ ] T014 [P] [Jorge Álvarez] Definir tipos TypeScript derivados de `contracts/api-rest.yaml` en `frontend/src/types/index.ts` (`SimulatedUser`, `ChatResponse`, `Citation` con `chunk_id`, `McpTrace`, `ActionProposal`).
 - [ ] T015 [Jorge Álvarez] Implementar cliente HTTP Axios/Fetch con soporte de mocks de desarrollo y manejo de sesión demo en `frontend/src/services/api.ts`.
