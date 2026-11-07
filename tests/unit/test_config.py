@@ -24,6 +24,9 @@ class TestSettings:
         assert settings.JWT_ALGORITHM == "HS256"
         assert settings.SESSION_TTL_MINUTES == 120
         assert settings.CONFIRMATION_TOKEN_TTL_MINUTES == 5
+        assert settings.MCP_SERVER_COMMAND == "python"
+        assert settings.MCP_SERVER_SCRIPT == "backend/mcp/server.py"
+        assert settings.MCP_TIMEOUT_SECONDS == 15.0
         assert settings.is_production is False
 
     def test_cors_origins_parsing_from_string(self):
@@ -95,6 +98,7 @@ class TestSettings:
         settings = Settings()
         assert str(settings.resolved_sqlite_path).endswith("mira_cu3.db")
         assert str(settings.resolved_chroma_path).endswith("chroma_db")
+        assert str(settings.resolved_mcp_server_path).endswith("server.py")
 
     def test_get_settings_cached_singleton(self):
         get_settings.cache_clear()

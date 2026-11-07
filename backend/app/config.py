@@ -82,6 +82,17 @@ class Settings(BaseSettings):
         description="Duración en minutos del token de confirmación de acción (TTL estricto de 5 min)",
     )
 
+    # Servidor FastMCP y Transporte stdio
+    MCP_SERVER_COMMAND: str = Field(default="python", description="Comando o intérprete para el servidor MCP")
+    MCP_SERVER_SCRIPT: str = Field(
+        default="backend/mcp/server.py",
+        description="Ruta relativa o absoluta al servidor FastMCP",
+    )
+    MCP_TIMEOUT_SECONDS: float = Field(
+        default=15.0,
+        description="Tiempo de espera en segundos para llamadas a herramientas MCP",
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -141,6 +152,11 @@ class Settings(BaseSettings):
     def resolved_chroma_path(self) -> Path:
         """Retorna la ruta resuelta al directorio de ChromaDB."""
         return Path(self.CHROMADB_PATH).resolve()
+
+    @property
+    def resolved_mcp_server_path(self) -> Path:
+        """Retorna la ruta resuelta al script del servidor FastMCP."""
+        return Path(self.MCP_SERVER_SCRIPT).resolve()
 
 
 @lru_cache

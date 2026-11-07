@@ -49,7 +49,7 @@
 - [ ] T010 [P] [Ángel Salgado] Implementar herramienta FastMCP `buscar_reglas` en `backend/mcp/tools/rag_tools.py` con filtros por vigencia (`vigente`, `todas`) y retorno de `chunk_id` estructurado según `contracts/mcp-tools.json`.
 - [x] T011 [P] [Lester González] Configurar carga de entorno y configuración centralizada con Pydantic Settings en `backend/app/config.py` (`GEMINI_API_KEY`, `GEMINI_MODEL`, `SQLITE_DB_PATH`, `CHROMADB_PATH`, `JWT_SECRET`).
 - [x] T012 [P] [Lester González] Implementar módulo de seguridad y emisión de tokens de sesión demo firmados HMAC en `backend/app/security.py` para los 4 usuarios reales del kit (`U-I1`, `U-I2`, `U-I3`, `U-I4`).
-- [ ] T013 [Lester González] Implementar cliente MCP asíncrono en `backend/mcp/client.py` para invocar herramientas del servidor FastMCP (`server.py`) inyectando el contexto de sesión confiable del operador.
+- [x] T013 [Lester González] Implementar cliente MCP asíncrono en `backend/mcp/client.py` para invocar herramientas del servidor FastMCP (`server.py`) inyectando el contexto de sesión confiable del operador.
 - [ ] T014 [P] [Jorge Álvarez] Definir tipos TypeScript derivados de `contracts/api-rest.yaml` en `frontend/src/types/index.ts` (`SimulatedUser`, `ChatResponse`, `Citation` con `chunk_id`, `McpTrace`, `ActionProposal`).
 - [ ] T015 [Jorge Álvarez] Implementar cliente HTTP Axios/Fetch con soporte de mocks de desarrollo y manejo de sesión demo en `frontend/src/services/api.ts`.
 
