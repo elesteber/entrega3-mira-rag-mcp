@@ -191,5 +191,55 @@ describe('ChatInterface Component (T028)', () => {
       ).toBeInTheDocument()
     })
   })
+
+  it('renderiza CitationCard debajo de EvidenceBadge con la primera cita abierta por defecto', async () => {
+    vi.spyOn(api, 'sendChat').mockResolvedValue({
+      answer: 'Según la normativa, el umbral es 80%.',
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      citations: [
+        {
+          chunk_id: 'GUI-INC_v2#sec3',
+          doc_code: 'GUI-INC_v2',
+          doc_title: 'Guía de Incorporación',
+          section: '§3',
+          version: 'v2',
+          status: 'vigente',
+          excerpt: 'El umbral de aprobación técnica es del 80%.',
+        },
+        {
+          chunk_id: 'POL-SEG_v1#sec2',
+          doc_code: 'POL-SEG_v1',
+          doc_title: 'Política de Seguridad',
+          section: '§2',
+          version: 'v1',
+          status: 'derogada',
+          excerpt: 'Umbral anterior 70%.',
+        },
+      ],
+      action_proposal: null,
+    })
+
+    const user = userEvent.setup()
+    render(<ChatInterface />)
+
+    const textarea = screen.getByPlaceholderText(/Pregunta sobre criterios de salida/i)
+    await user.type(textarea, 'Consulta sobre umbral')
+    await user.click(screen.getByRole('button', { name: /Enviar/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Citas documentales (2):')).toBeInTheDocument()
+      expect(screen.getByText('GUI-INC_v2')).toBeInTheDocument()
+      expect(screen.getByText('POL-SEG_v1')).toBeInTheDocument()
+
+      // La primera cita aparece abierta por defecto
+      expect(
+        screen.getByText('El umbral de aprobación técnica es del 80%.'),
+      ).toBeInTheDocument()
+
+      // La segunda cita aparece cerrada por defecto
+      expect(screen.queryByText('Umbral anterior 70%.')).not.toBeInTheDocument()
+    })
+  })
 })
 

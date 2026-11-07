@@ -14,6 +14,7 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - [ADR-06: Selección del Modelo Generativo Gemini Flash](#adr-06-selección-del-modelo-generativo-gemini-flash)
 - [ADR-07: Protocolo de Confirmación Humana en Dos Fases para Mutaciones](#adr-07-protocolo-de-confirmación-humana-en-dos-fases-para-mutaciones)
 - [ADR-08: Uso de uv para Gestión de Entornos y Dependencias Python](#adr-08-uso-de-uv-para-gestión-de-entornos-y-dependencias-python)
+- [ADR-FE-01: Decisiones de Arquitectura Frontend, Manejo de Sesión y Mocks](#adr-fe-01-decisiones-de-arquitectura-frontend-manejo-de-sesión-y-mocks)
 
 ---
 
@@ -101,3 +102,24 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - **Decisión:** Utilizar `uv` como gestor de paquetes y entornos virtuales.
 - **Justificación:** Es un orden de magnitud más rápido que pip/poetry, genera archivos de bloqueo deterministas (`uv.lock`) y garantiza reproducibilidad entre sistemas operativos.
 - **Alternativas consideradas:** Poetry / pip tradicional.
+
+---
+
+### ADR-FE-01: Decisiones de Arquitectura Frontend, Manejo de Sesión y Mocks
+- **Fecha:** 2026-11-07
+- **Estado:** **Propuesta**
+- **Contexto:** Construcción del cliente HTTP, configuración de estilos, gestión de credenciales efímeras y estrategia de mocks de desarrollo para el frontend en React/Vite.
+- **Decisión:**
+  1. `VITE_API_URL` representa exclusivamente el origen base (ej. `http://localhost:8000`), debido a que las rutas contractuales de `contracts/api-rest.yaml` ya incorporan el prefijo `/api/...` (`/api/session/users`, `/api/chat`, etc.).
+  2. Uso de Tailwind CSS 3.4 conforme a lo especificado en `plan.md` y `tasks.md`, asegurando consistencia de utilidades y compatibilidad con el entorno de testing.
+  3. Almacenamiento de `session_token` únicamente en memoria (variable de módulo mediante `setSessionToken`/`getSessionToken`), sin persistencia en `localStorage` ni `sessionStorage`, y prohibición estricta de mostrar o imprimir `session_token` y `confirmation_token` en consola o en texto de interfaz (PR-7).
+  4. Implementación de respuestas simuladas en `frontend/src/services/mocks.ts` marcadas exhaustivamente con el comentario `// MOCK`, con extractos textuales literales del corpus oficial, y despliegue de un aviso visible permanente en la interfaz ("Datos simulados") mientras `VITE_USE_MOCKS === 'true'`.
+- **Justificación:**
+  1. Evita duplicación de prefijos en las URLs (`/api/api/...`) y desacopla el cliente de la topología de red.
+  2. Tailwind 3.4 proporciona estabilidad sin sobrecargar la configuración de Vite.
+  3. Previene fugas de credenciales en inspección de almacenamiento local y ataques XSS, alineándose con el principio de seguridad en sesión de PR-7.
+  4. Garantiza desarrollo y evaluación autónoma de la interfaz sin dependencia bloqueante del backend activo, asegurando total fidelidad a los datos del kit sin alucinaciones.
+- **Alternativas consideradas:**
+  1. Definir `VITE_API_URL=http://localhost:8000/api`: Descartada para evitar discrepancias con el contrato OpenAPI.
+  2. Guardar token en `localStorage`: Descartada por vulnerabilidad ante ataques de extracción de credenciales.
+  3. Mocks con bibliotecas externas pesadas (ej. MSW con service workers): Descartada en favor de una delegación funcional nativa en `mocks.ts` liviana y transparente.

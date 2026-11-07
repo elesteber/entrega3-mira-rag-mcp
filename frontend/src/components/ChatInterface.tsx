@@ -5,10 +5,12 @@ import type {
   ChatResponse,
   ActionProposal,
   EvidenceStatus,
+  Citation,
   HistoryMessage,
 } from '../types'
 import { sendChat, ApiClientError } from '../services/api'
 import { EvidenceBadge } from './EvidenceBadge'
+import { CitationCard } from './CitationCard'
 
 export interface ChatInterfaceProps {
   onResponse?: (response: ChatResponse) => void
@@ -22,6 +24,7 @@ interface MessageItem {
   role: 'user' | 'assistant'
   content: string
   evidenceStatus?: EvidenceStatus
+  citations?: Citation[]
   actionProposal?: ActionProposal | null
 }
 
@@ -90,6 +93,7 @@ export function ChatInterface({
         role: 'assistant',
         content: response.answer,
         evidenceStatus: response.evidence_status,
+        citations: response.citations,
         actionProposal: response.action_proposal,
       }
 
@@ -188,6 +192,23 @@ export function ChatInterface({
                     {msg.evidenceStatus && (
                       <div className="border-t border-slate-200/60 pt-2">
                         <EvidenceBadge status={msg.evidenceStatus} />
+                      </div>
+                    )}
+
+                    {msg.citations && msg.citations.length > 0 && (
+                      <div className="mt-2.5 space-y-2 pt-2 border-t border-slate-200/60">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                          Citas documentales ({msg.citations.length}):
+                        </span>
+                        <div className="flex flex-col gap-2">
+                          {msg.citations.map((cit, idx) => (
+                            <CitationCard
+                              key={`${cit.chunk_id}-${idx}`}
+                              citation={cit}
+                              defaultOpen={idx === 0}
+                            />
+                          ))}
+                        </div>
                       </div>
                     )}
 

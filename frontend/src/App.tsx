@@ -1,12 +1,22 @@
-import { useState } from 'react'
-import { Activity } from 'lucide-react'
+import { useState, useCallback } from 'react'
 import { isMockMode } from './services/api'
-import type { SimulatedUser } from './types'
+import type { SimulatedUser, McpTrace, ChatResponse } from './types'
 import { SessionSelector } from './components/SessionSelector'
 import { ChatInterface } from './components/ChatInterface'
+import { McpTracePanel } from './components/McpTracePanel'
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<SimulatedUser | null>(null)
+  const [activeTraces, setActiveTraces] = useState<McpTrace[]>([])
+
+  const handleSessionChange = useCallback((user: SimulatedUser) => {
+    setCurrentUser(user)
+    setActiveTraces([])
+  }, [])
+
+  const handleChatResponse = useCallback((response: ChatResponse) => {
+    setActiveTraces(response.mcp_traces || [])
+  }, [])
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -29,7 +39,7 @@ export function App() {
             )}
           </div>
         </div>
-        <SessionSelector onSessionChange={setCurrentUser} />
+        <SessionSelector onSessionChange={handleSessionChange} />
       </header>
 
       {/* Área principal con dos columnas responsivas */}
@@ -43,31 +53,15 @@ export function App() {
             <ChatInterface
               key={currentUser?.usuario_id ?? 'initial-session'}
               organizationContext={currentUser?.orgs_asignadas?.[0] ?? null}
+              onResponse={handleChatResponse}
             />
           </section>
 
-          {/* Columna derecha: Panel reservado Trazas MCP (debajo en pantallas pequeñas) */}
-          <aside
-            aria-label="Panel de Trazas MCP"
-            className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-1"
-          >
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Activity className="h-5 w-5 text-indigo-600" aria-hidden="true" />
-              <h2 className="text-base font-semibold text-slate-800">Trazas MCP</h2>
-            </div>
-            <div className="flex flex-1 flex-col items-center justify-center p-6 text-center text-slate-400">
-              <Activity
-                className="mb-3 h-10 w-10 text-slate-300 stroke-[1.5]"
-                aria-hidden="true"
-              />
-              <p className="text-sm font-medium text-slate-600">
-                Aún sin consultas
-              </p>
-              <p className="mt-1 text-xs text-slate-400 max-w-xs">
-                Las llamadas a herramientas FastMCP y sus métricas de ejecución se visualizarán en este panel.
-              </p>
-            </div>
-          </aside>
+          {/* Columna derecha: Panel de Trazas MCP (debajo en pantallas pequeñas) */}
+          <McpTracePanel
+            traces={activeTraces}
+            className="lg:col-span-1 h-[calc(100vh-140px)] min-h-[300px]"
+          />
         </div>
       </main>
     </div>
