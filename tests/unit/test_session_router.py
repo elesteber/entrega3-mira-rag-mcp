@@ -179,4 +179,3 @@ class TestCorsAndOpenApiSpecification:
 
         assert "/api/session/switch" in paths
         assert "post" in paths["/api/session/switch"]
-

@@ -30,4 +30,3 @@ class SwitchSessionRequest(BaseModel):
         description="Identificador del usuario simulado ('U-I1', 'U-I2', 'U-I3', 'U-I4')",
         examples=["U-I1"],
     )
-

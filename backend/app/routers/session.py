@@ -100,4 +100,3 @@ def switch_session_user(payload: SwitchSessionRequest) -> SessionTokenResponse:
         user=user_model,
         expires_at=expires_at,
     )
-

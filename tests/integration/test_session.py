@@ -58,4 +58,3 @@ class TestSessionLifecycleIntegration:
         err = invalid_resp.json()
         assert err["code"] == "INVALID_USER_ID"
         assert err["principle_violated"] == "PR-7"
-
