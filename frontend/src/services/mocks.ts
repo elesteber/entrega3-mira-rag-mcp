@@ -158,8 +158,8 @@ export async function mockSendChat(request: ChatRequest): Promise<ChatResponse> 
       mcp_traces: [
         // MOCK
         {
-          tool_name: 'consultar_tarea',
-          parameters: { tarea_id: 'T-008' },
+          tool_name: 'checklist_organizacion',
+          parameters: { org_id: 'ORG-05' },
           response_summary: 'T-008: estado pendiente, observacion contiene texto no confiable',
           execution_time_ms: 11.5,
           success: true,
@@ -196,8 +196,8 @@ export async function mockSendChat(request: ChatRequest): Promise<ChatResponse> 
       mcp_traces: [
         // MOCK
         {
-          tool_name: 'consultar_tarea',
-          parameters: { tarea_id: 'T-006' },
+          tool_name: 'checklist_organizacion',
+          parameters: { org_id: 'ORG-05' },
           response_summary:
             'T-006: Configurar intercambio de archivos con el sistema central (en_curso)',
           execution_time_ms: 9.2,
@@ -254,7 +254,7 @@ export async function mockSendChat(request: ChatRequest): Promise<ChatResponse> 
       mcp_traces: [
         // MOCK
         {
-          tool_name: 'consultar_plantilla',
+          tool_name: 'listar_plantillas',
           parameters: { plantilla_id: 'PLA-ADM' },
           response_summary:
             'Plantilla PLA-ADM en SQLite: umbral_aprobacion_sugerido = 80, umbral_revision_sugerido = 60',
@@ -492,4 +492,3 @@ export async function mockConfirmAction(
     fecha_cambio: new Date().toISOString(),
   }
 }
-
