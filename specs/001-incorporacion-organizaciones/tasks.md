@@ -202,7 +202,7 @@
 **Propósito**: Consolidación del banco de evaluación, interoperabilidad con clientes externos, verificación en vivo de los 8 momentos obligatorios de la pauta docente y preparación de la defensa.
 
 - [X] T060 [Ángel Salgado] Construir el archivo versionado del Golden Set con al menos 20 preguntas en `tests/evaluation/goldenset_cases.json` (12 con respuesta en corpus, 4 de abstención, 2 de versiones normativas y 2 de contradicción documental).
-- [ ] T061 [Ángel Salgado] Documentar en `tests/evaluation/README.md` la auditoría de contradicciones del corpus: registrar explícitamente como pendiente de validación docente si se identifican 2 contradicciones internas genuinas entre documentos vigentes del corpus, diferenciándolo del caso `FIC-PLA` vs `plantillas.db`.
+- [X] T061 [Ángel Salgado] Documentar en `tests/evaluation/README.md` la auditoría de contradicciones del corpus: registrar explícitamente como pendiente de validación docente si se identifican 2 contradicciones internas genuinas entre documentos vigentes del corpus, diferenciándolo del caso `FIC-PLA` vs `plantillas.db`.
 - [ ] T062 [Ángel Salgado] Implementar script de evaluación métrica automatizada en `tests/evaluation/eval_goldenset.py` calculando `Recall@k`, precisión de citas, tasa de abstenciones correctas y cumplimiento de PR-1..PR-7.
 - [ ] T063 [P] [Rodrigo Guerrero] Crear script cliente MCP independiente en `tests/clients/test_external_mcp_client.py` para demostrar la conexión de un cliente externo directo al servidor FastMCP para el paso de demostración D7.
 - [ ] T064 [Jorge Álvarez] Realizar ajustes finales de interfaz, responsive design, accesibilidad y mensajes de feedback en `frontend/src/App.tsx`.
