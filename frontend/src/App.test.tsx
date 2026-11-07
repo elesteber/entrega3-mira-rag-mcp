@@ -7,5 +7,9 @@ describe('App', () => {
     render(<App />)
     expect(screen.getByText('MIRA · Asistente de incorporación')).toBeInTheDocument()
   })
-})
 
+  it('muestra el aviso visible de datos simulados en modo mock', () => {
+    render(<App />)
+    expect(screen.getByText('Datos simulados')).toBeInTheDocument()
+  })
+})
