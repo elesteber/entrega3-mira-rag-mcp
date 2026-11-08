@@ -1069,5 +1069,3 @@ class TestAuditPr17Regression:
         assert "NO puede pasar a producción" in answer
         assert "Existe falta de evidencia documental o de datos del sistema" in answer
         assert "Pruebas de integración" in answer
-
-
