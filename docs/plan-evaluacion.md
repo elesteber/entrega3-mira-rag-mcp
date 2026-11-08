@@ -17,14 +17,14 @@ La pauta exige una lista fija de al menos 20 preguntas redactadas por el equipo 
 | **Con respuesta distinta entre versiones** | 2 | Responde con la versión vigente (`v2`) e indica la derogación de la previa (`v1`). |
 
 ### 1.2 Regla de Oro de Versionado
-> **REQUISITO FORMAL:** El archivo definitivo del Golden Set (`tests/golden_set.json`) debe quedar **versionado en un commit de Git ANTERIOR a la primera ejecución completa del pipeline de evaluación**, asegurando que los casos no se sobreajusten artificialmente a las respuestas del modelo.
+> **REQUISITO FORMAL:** El archivo definitivo del Golden Set (`tests/evaluation/goldenset_cases.json`) debe quedar **versionado en un commit de Git ANTERIOR a la primera ejecución completa del pipeline de evaluación**, asegurando que los casos no se sobreajusten artificialmente a las respuestas del modelo.
 
 ---
 
 ## 2. Propuesta Inicial de Candidatos para el Golden Set (CU-3)
 
 > **Actualización 2026-11-07 — Golden set v1.0 fijado.** La versión definitiva vive en [`tests/evaluation/goldenset_cases.json`](../tests/evaluation/goldenset_cases.json) (22 casos: 13 con respuesta, 4 sin respuesta, 2 conflictos vigentes, 2 cambios de versión y 1 conflicto documento-datos adicional). Su integridad se verifica con `tests/unit/test_goldenset.py`. Cambios respecto de los candidatos de abajo:
-> - **Conflictos vigentes (2.3) reemplazados.** El candidato 17 (umbral PLA-ADM 85 vs 80) es un conflicto *documento vs base de datos*, no entre dos fuentes vigentes, y el 18 no es un conflicto. Se usan dos contradicciones reales del corpus: `FIC-PLA v1 §1` («sin necesidad de ejemplos») vs `POL-FOR v1 §2` (20 a 30 ejemplos), y `GUI-INC v2 §1` (producción en 10 días hábiles) vs `POL-FOR v1 §2` (ajuste de 10 a 15 días) junto al criterio 6 de `GUI-INC v2 §3`. El caso PLA-ADM se conserva como GS-22, tipo `conflicto_documento_datos` (requiere MCP).
+> - **Conflictos vigentes (2.3) reemplazados.** El candidato 17 (umbral PLA-ADM 85 vs 80) es un conflicto *documento vs base de datos*, no entre dos fuentes vigentes, y el 18 no es un conflicto. Se usan dos conflictos entre fuentes vigentes del corpus: `FIC-PLA v1 §1` (afirmación general «sin necesidad de ejemplos») vs `POL-FOR v1 §2` (requisito específico de 20 a 30 ejemplos para formularios propios), y `GUI-INC v2 §1` (producción en 10 días hábiles) vs `POL-FOR v1 §2` (ajuste de 10 a 15 días) junto al criterio 6 de `GUI-INC v2 §3` (conflicto de planificación: solo compatibles en el mejor caso). El caso PLA-ADM se conserva como GS-22, tipo `conflicto_documento_datos` (requiere MCP).
 > - **Abstención (2.2):** se reemplazan los candidatos 14 y 15 (temas ajenos al CU-3, demasiado fáciles) por preguntas trampa cercanas al corpus: plantilla inexistente (GS-15) y vigencia de la autorización de transferencia internacional (GS-16).
 > - **Con respuesta:** el candidato 2 se reformula (qué tareas marca un ejecutivo, GUI-INC v2 §4) para no duplicar la pregunta de versión GS-21, y se agrega GS-13 (credenciales, REQ-INT v2 §2).
 > - Cada fragmento esperado incluye un **ancla literal** única en el corpus, para medir Recall@k a nivel de fragmento con cualquier estrategia de chunking.
