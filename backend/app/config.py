@@ -69,6 +69,10 @@ class Settings(BaseSettings):
     # Modelo configurable; no confundir con modelos de desarrollo de Antigravity
     GEMINI_API_KEY: str = Field(default="", description="Clave de API de Google Gemini (Google AI Studio)")
     GEMINI_MODEL: str = Field(default="gemini-3.8-flash", description="Modelo Gemini Flash candidato vigente")
+    GEMINI_TIMEOUT_SECONDS: float = Field(
+        default=30.0,
+        description="Tiempo de espera máximo en segundos para llamadas de generación a Gemini API (AUD-08)",
+    )
 
     # Seguridad y Sesión de Demostración
     JWT_SECRET: str = Field(

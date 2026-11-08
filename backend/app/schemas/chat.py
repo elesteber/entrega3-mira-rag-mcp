@@ -20,16 +20,22 @@ class EvidenceStatusEnum(str, Enum):
 
 
 class HistoryMessage(BaseModel):
-    """Mensaje previo en el historial de conversación."""
+    """Mensaje previo en el historial de conversación (con límites defensivos de entrada AUD-08)."""
 
     role: str = Field(description="Rol del emisor: 'user' o 'assistant'")
-    content: str = Field(description="Contenido textual del mensaje")
+    content: str = Field(
+        min_length=1,
+        max_length=4000,
+        description="Contenido textual del mensaje previo",
+    )
 
 
 class ChatRequest(BaseModel):
-    """Cuerpo de solicitud para el endpoint POST /api/chat."""
+    """Cuerpo de solicitud para el endpoint POST /api/chat (con límites de entrada AUD-08)."""
 
     message: str = Field(
+        min_length=1,
+        max_length=4000,
         description="Mensaje o consulta en lenguaje natural del usuario",
         examples=["¿Qué le falta a la organización ORG-07 para pasar a producción con la plantilla de admisión clínica?"],
     )
@@ -40,7 +46,8 @@ class ChatRequest(BaseModel):
     )
     conversation_history: Optional[List[HistoryMessage]] = Field(
         default=None,
-        description="Historial previo de la conversación para contexto multi-turno",
+        max_length=50,
+        description="Historial previo de la conversación para contexto multi-turno (máximo 50 turnos)",
     )
 
 

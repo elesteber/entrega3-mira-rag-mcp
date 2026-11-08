@@ -189,6 +189,34 @@ def sanitize_payload(payload: Any) -> Any:
     return payload
 
 
+PATH_POSIX_REGEX = re.compile(r"(?:/[a-zA-Z0-9_\.\-]+){2,}")
+PATH_WINDOWS_REGEX = re.compile(r"[a-zA-Z]:\\[a-zA-Z0-9_\.\-\\]+")
+SECRET_MARKER_REGEX = re.compile(r"(?i)\b(?:MARCADOR_SECRETO[a-zA-Z0-9_]*|SECRET_[a-zA-Z0-9_]*|API_KEY[a-zA-Z0-9_]*)\b")
+SECRET_KV_REGEX = re.compile(r"(?i)\b(token|key|secret|password|bearer)[:=\s]+([^\s,;]+)")
+
+
+def sanitize_mcp_error(error_text: Optional[str]) -> Optional[str]:
+    """Censura secretos, rutas de archivos y tokens en mensajes de error para trazas públicas (AUD-04).
+
+    Garantiza que ningún traceback, ruta absoluta de archivos ni credencial confidencial
+    quede expuesto al frontend o en respuestas HTTP.
+    """
+    if not error_text:
+        return None
+
+    cleaned = str(error_text)
+    # 1. Censurar JWTs
+    cleaned = re.sub(r"eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+", "[REDACTED_JWT]", cleaned)
+    # 2. Censurar marcadores y tokens confidenciales ficticios o reales
+    cleaned = SECRET_MARKER_REGEX.sub("[REDACTED_SECRET]", cleaned)
+    cleaned = SECRET_KV_REGEX.sub(r"\1=[REDACTED_SECRET]", cleaned)
+    # 3. Censurar rutas de archivos del sistema operativo
+    cleaned = PATH_POSIX_REGEX.sub("[REDACTED_PATH]", cleaned)
+    cleaned = PATH_WINDOWS_REGEX.sub("[REDACTED_PATH]", cleaned)
+
+    return cleaned
+
+
 # ==============================================================================
 # Cliente FastMCP Principal
 # ==============================================================================
@@ -269,6 +297,11 @@ class MiraMcpClient:
                 logger.info("Sesión FastMCP iniciada exitosamente.")
             except Exception as e:
                 self._is_connected = False
+                if self._client is not None:
+                    try:
+                        await self._client.__aexit__(type(e), e, e.__traceback__)
+                    except Exception:
+                        pass
                 self._client = None
                 raise McpConnectionError(f"Fallo al iniciar el servidor MCP: {str(e)}") from e
 
@@ -318,9 +351,9 @@ class MiraMcpClient:
             description = getattr(tool, "description", None)
             input_schema = getattr(tool, "input_schema", getattr(tool, "inputSchema", {}))
 
-            is_mutation = name in PROTECTED_MUTATION_TOOLS
-            category = "mutation" if is_mutation else "query"
-            exposed_to_llm = not is_mutation
+            is_query = (name in KNOWN_QUERY_TOOLS) and (name not in PROTECTED_MUTATION_TOOLS)
+            category = "query" if is_query else "mutation"
+            exposed_to_llm = is_query
 
             definitions.append(
                 McpToolDefinition(
@@ -337,13 +370,13 @@ class MiraMcpClient:
     async def get_tools_for_llm(self) -> List[McpToolDefinition]:
         """Retorna exclusivamente las herramientas de consulta autorizadas para el LLM.
 
-        Garantiza de forma taxativa que marcar_tarea y cualquier otra mutación queden
-        excluidas del catálogo expuesto al modelo generativo Gemini (PR-1, PR-6).
+        Aplica política de mínimo privilegio y denegación por defecto (AUD-07):
+        Únicamente herramientas catalogadas en KNOWN_QUERY_TOOLS y explícitamente no protegidas (PR-1, PR-6).
         """
         all_tools = await self.list_tools()
         return [
             tool for tool in all_tools
-            if tool.exposed_to_llm and tool.name not in PROTECTED_MUTATION_TOOLS
+            if tool.name in KNOWN_QUERY_TOOLS and tool.name not in PROTECTED_MUTATION_TOOLS
         ]
 
     # ==========================================================================
@@ -356,11 +389,11 @@ class MiraMcpClient:
         arguments: Dict[str, Any],
         user_context: Optional[SimulatedUser] = None,
     ) -> McpToolResult:
-        """Invoca una herramienta en nombre del LLM con validaciones estrictas de seguridad.
+        """Invoca una herramienta en nombre del LLM con validaciones estrictas de seguridad (AUD-07).
 
         Raises:
-            McpSecurityError: Si el modelo intenta invocar una herramienta protegida de mutación.
-            McpToolNotFoundError: Si la herramienta no existe en el catálogo seguro del LLM.
+            McpSecurityError: Si se intenta invocar una herramienta de mutación protegida (PR-1, PR-6).
+            McpToolNotFoundError: Si la herramienta no existe en el catálogo seguro de consultas (AUD-07).
         """
         clean_name = tool_name.strip()
         if clean_name in PROTECTED_MUTATION_TOOLS:
@@ -369,11 +402,10 @@ class MiraMcpClient:
                 "es de mutación protegida y no puede ser invocada por el modelo de lenguaje."
             )
 
-        # Validar que la herramienta pertenezca a las herramientas para LLM
-        available_tools = {t.name for t in await self.get_tools_for_llm()}
-        if clean_name not in available_tools:
+        # Política de mínimo privilegio y denegación por defecto (AUD-07)
+        if clean_name not in KNOWN_QUERY_TOOLS:
             raise McpToolNotFoundError(
-                f"La herramienta '{clean_name}' no existe o no está autorizada para el modelo de lenguaje."
+                f"La herramienta '{clean_name}' no existe o no está autorizada para consultas del modelo (AUD-07)."
             )
 
         return await self._call_tool_internal(
@@ -475,12 +507,24 @@ class MiraMcpClient:
         start_time = time.perf_counter()
 
         try:
-            # NOTA DE INTEGRACIÓN: Aquí se ejecutará la llamada al servidor de Rodrigo.
-            # En caso de requerir propagación de usuario_id vía parámetros:
+            # Propagación de identidad confiable y validación de aislamiento (PR-7, AUD-03)
             final_args = dict(arguments)
-            if user_context and "usuario_id" in final_args and is_llm_invocation:
-                # El backend sobreescribe cualquier usuario_id manipulado por el LLM (PR-7)
-                final_args["usuario_id"] = user_context.usuario_id
+            if user_context:
+                if "org_id" in final_args and final_args["org_id"]:
+                    req_org = str(final_args["org_id"]).strip().upper()
+                    from backend.app.security import check_user_organization_access
+                    if not check_user_organization_access(user_context, req_org):
+                        err_msg = (
+                            f"Violación de aislamiento organizacional (PR-7): El usuario {user_context.usuario_id} "
+                            f"({user_context.rol}) no tiene autorización sobre la organización {req_org}."
+                        )
+                        logger.warning(err_msg)
+                        self._record_trace(tool_name, 0.0, False, sanitized_args, None, sanitize_mcp_error(err_msg))
+                        raise McpSecurityError(err_msg)
+
+                # El backend asegura identidad validada (PR-7, AUD-03): sustituir usuario_id si aplica
+                if "usuario_id" in final_args:
+                    final_args["usuario_id"] = user_context.usuario_id
 
             call_coro = self._client.call_tool(tool_name, final_args)
             raw_result = await asyncio.wait_for(call_coro, timeout=self._timeout)
@@ -492,9 +536,22 @@ class MiraMcpClient:
             raw_content = getattr(raw_result, "content", [])
 
             if is_error:
-                error_msg = f"La herramienta '{tool_name}' reportó un fallo: {data}"
+                error_msg = sanitize_mcp_error(f"La herramienta '{tool_name}' reportó un fallo: {data}")
                 self._record_trace(tool_name, duration_ms, False, sanitized_args, None, error_msg)
                 raise McpExecutionError(error_msg)
+
+            # Validar que la respuesta MCP corresponda a la organización solicitada (PR-7, AUD-03)
+            if "org_id" in arguments and isinstance(data, dict) and "org_id" in data:
+                req_org = str(arguments["org_id"]).strip().upper()
+                ret_org = str(data["org_id"]).strip().upper()
+                if ret_org != req_org:
+                    mismatch_err = (
+                        f"Discrepancia en respuesta MCP: la organización devuelta ({ret_org}) "
+                        f"no coincide con la organización solicitada ({req_org}) (PR-7)."
+                    )
+                    logger.error(mismatch_err)
+                    self._record_trace(tool_name, duration_ms, False, sanitized_args, None, sanitize_mcp_error(mismatch_err))
+                    raise McpSecurityError(mismatch_err)
 
             sanitized_out = sanitize_payload(data)
             self._record_trace(tool_name, duration_ms, True, sanitized_args, sanitized_out, None)
@@ -521,7 +578,7 @@ class MiraMcpClient:
                 self._record_trace(tool_name, duration_ms, False, sanitized_args, None, error_msg)
                 raise McpToolNotFoundError(error_msg) from e
 
-            error_msg = f"Fallo al ejecutar '{tool_name}': {msg}"
+            error_msg = sanitize_mcp_error(f"Fallo al ejecutar '{tool_name}': {msg}")
             self._record_trace(tool_name, duration_ms, False, sanitized_args, None, error_msg)
             raise McpExecutionError(error_msg) from e
 
@@ -530,7 +587,7 @@ class MiraMcpClient:
 
         except Exception as e:
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
-            error_msg = f"Error inesperado en comunicación MCP con '{tool_name}': {str(e)}"
+            error_msg = sanitize_mcp_error(f"Error inesperado en comunicación MCP con '{tool_name}': {str(e)}")
             self._record_trace(tool_name, duration_ms, False, sanitized_args, None, error_msg)
             raise McpConnectionError(error_msg) from e
 
@@ -543,12 +600,12 @@ class MiraMcpClient:
         sanitized_output: Optional[Any],
         error: Optional[str],
     ) -> None:
-        """Almacena una traza de auditoría estructurada y sanitizada."""
+        """Almacena una traza de auditoría estructurada y sanitizada (AUD-04)."""
         trace = McpTrace(
             tool_name=tool_name,
             duration_ms=duration_ms,
             success=success,
-            error=error,
+            error=sanitize_mcp_error(error),
             sanitized_arguments=sanitized_args,
             sanitized_output=sanitized_output,
         )
