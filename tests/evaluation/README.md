@@ -24,10 +24,10 @@ La pauta (§7.1) pide 2 preguntas con **conflicto entre fuentes vigentes**. Se d
 
 ### A. Conflictos entre dos documentos vigentes del corpus (usados en el golden set)
 
-| ID | Fuente 1 (vigente) | Fuente 2 (vigente) | Por qué se contradicen | Caso |
+| ID | Fuente 1 (vigente) | Fuente 2 (vigente) | Naturaleza del conflicto | Caso |
 |---|---|---|---|---|
-| C-1 | `FIC-PLA v1 §1`: «Todas las plantillas reconocen desde el primer día cualquier documento del proceso, sin necesidad de ejemplos de la organización.» | `POL-FOR v1 §2`: «La organización entrega entre 20 y 30 ejemplos del formulario…» | Un formulario propio es un documento del proceso, y POL-FOR exige ejemplos para leerlo. FIC-PLA afirma que no hacen falta. | GS-18 |
-| C-2 | `GUI-INC v2 §1`: producción «dentro de diez días hábiles desde la firma». | `POL-FOR v1 §2`: «El ajuste de lectura toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos.» | Además, `GUI-INC v2 §3` (criterio 6) exige que todos los formularios propios estén «operativos». Una organización con un formulario propio no puede cumplir la meta de 10 días. | GS-19 |
+| C-1 | `FIC-PLA v1 §1`: «Todas las plantillas reconocen desde el primer día cualquier documento del proceso, sin necesidad de ejemplos de la organización.» | `POL-FOR v1 §2`: «La organización entrega entre 20 y 30 ejemplos del formulario…» | FIC-PLA hace una afirmación general («cualquier documento») y POL-FOR fija un requisito específico para formularios propios. Es una inconsistencia si el formulario propio cuenta como documento del proceso; no toda excepción es contradicción, por eso el asistente debe exponer ambas fuentes. | GS-18 |
+| C-2 | `GUI-INC v2 §1`: producción «dentro de diez días hábiles desde la firma». | `POL-FOR v1 §2`: «El ajuste de lectura toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos.» | Además, `GUI-INC v2 §3` (criterio 6) exige que todos los formularios propios estén «operativos». Conflicto de planificación condicional: la meta solo se cumple si los ejemplos completos llegan al firmar y el ajuste toma el mínimo (10 días); si no, la meta no se alcanza. | GS-19 |
 
 Comportamiento esperado (PR-4): presentar ambas fuentes con su cita y no elegir; la resuelve una persona.
 
