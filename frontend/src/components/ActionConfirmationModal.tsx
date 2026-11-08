@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -9,7 +9,7 @@ import {
   Clock,
 } from 'lucide-react'
 import type { ActionProposal, ActionConfirmResponse, SimulatedUser } from '../types'
-import { prepareAction, confirmAction, ApiClientError, getSessionToken } from '../services/api'
+import { prepareAction, confirmAction, ApiClientError } from '../services/api'
 
 export interface ActionConfirmationModalProps {
   isOpen: boolean
@@ -42,7 +42,7 @@ export function ActionConfirmationModal({
   const [error, setError] = useState<ErrorDetails | null>(null)
   const [prevProposalKey, setPrevProposalKey] = useState<string | null>(null)
 
-  const activeUserId = currentUser?.usuario_id || getSessionToken() || 'anonymous'
+  const activeUserId = currentUser?.usuario_id || 'anonymous'
   // currentProposalKey incluye tarea_id, org_id, nuevo_estado, justificacion y el usuario de la sesión
   const currentProposalKey =
     isOpen && proposal
@@ -51,6 +51,11 @@ export function ActionConfirmationModal({
 
   const sessionEpochRef = useRef(sessionEpoch)
   const abortControllerRef = useRef<AbortController | null>(null)
+  const latestProposalKeyRef = useRef<string | null>(currentProposalKey)
+
+  useLayoutEffect(() => {
+    latestProposalKeyRef.current = currentProposalKey
+  }, [currentProposalKey])
 
   useEffect(() => {
     if (sessionEpochRef.current !== sessionEpoch) {
@@ -108,6 +113,13 @@ export function ActionConfirmationModal({
     const controller = new AbortController()
     abortControllerRef.current = controller
     const requestEpoch = sessionEpochRef.current
+    const requestKey = currentProposalKey
+
+    const isStale = () =>
+      requestEpoch !== sessionEpochRef.current ||
+      controller.signal.aborted ||
+      abortControllerRef.current !== controller ||
+      requestKey !== latestProposalKeyRef.current
 
     try {
       // Llamada formal a prepareAction({ action_type, target_id, payload, org_id })
@@ -128,12 +140,8 @@ export function ActionConfirmationModal({
         controller.signal,
       )
 
-      // Ignorar si la época cambió, el modal se cerró o la petición se abortó
-      if (
-        requestEpoch !== sessionEpochRef.current ||
-        controller.signal.aborted ||
-        abortControllerRef.current !== controller
-      ) {
+      // Ignorar si la época cambió, el modal se cerró, la petición se abortó o la propuesta cambió
+      if (isStale()) {
         return
       }
 
@@ -162,11 +170,7 @@ export function ActionConfirmationModal({
         `Acción preparada para la tarea ${res.proposal.tarea_id} (${res.proposal.org_id}). Nuevo estado: ${res.proposal.estado_propuesto}. Token de confirmación efímero emitido con vigencia de 5 minutos.`,
       )
     } catch (err) {
-      if (
-        requestEpoch !== sessionEpochRef.current ||
-        controller.signal.aborted ||
-        abortControllerRef.current !== controller
-      ) {
+      if (isStale()) {
         return
       }
 
@@ -184,11 +188,7 @@ export function ActionConfirmationModal({
         })
       }
     } finally {
-      if (
-        requestEpoch === sessionEpochRef.current &&
-        !controller.signal.aborted &&
-        abortControllerRef.current === controller
-      ) {
+      if (!isStale()) {
         setIsPreparing(false)
       }
     }
