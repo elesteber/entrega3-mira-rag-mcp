@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -8,14 +8,16 @@ import {
   ArrowRight,
   Clock,
 } from 'lucide-react'
-import type { ActionProposal, ActionConfirmResponse } from '../types'
-import { prepareAction, confirmAction, ApiClientError } from '../services/api'
+import type { ActionProposal, ActionConfirmResponse, SimulatedUser } from '../types'
+import { prepareAction, confirmAction, ApiClientError, getSessionToken } from '../services/api'
 
 export interface ActionConfirmationModalProps {
   isOpen: boolean
   proposal: ActionProposal | null
   onClose: () => void
   onSuccess?: (response: ActionConfirmResponse) => void
+  currentUser?: SimulatedUser | null
+  sessionEpoch?: number
 }
 
 interface ErrorDetails {
@@ -28,6 +30,8 @@ export function ActionConfirmationModal({
   proposal,
   onClose,
   onSuccess,
+  currentUser,
+  sessionEpoch = 0,
 }: ActionConfirmationModalProps) {
   // Token efímero de confirmación retenido estrictamente en memoria (nunca renderizado ni logueado)
   const [internalToken, setInternalToken] = useState<string | null>(null)
@@ -38,8 +42,38 @@ export function ActionConfirmationModal({
   const [error, setError] = useState<ErrorDetails | null>(null)
   const [prevProposalKey, setPrevProposalKey] = useState<string | null>(null)
 
-  // Ajustar estado durante render si cambia la propuesta (patrón recomendado por React docs)
-  const currentProposalKey = isOpen && proposal ? `${proposal.tarea_id}-${proposal.org_id}` : null
+  const activeUserId = currentUser?.usuario_id || getSessionToken() || 'anonymous'
+  // currentProposalKey incluye tarea_id, org_id, nuevo_estado, justificacion y el usuario de la sesión
+  const currentProposalKey =
+    isOpen && proposal
+      ? `${proposal.tarea_id}-${proposal.org_id}-${proposal.estado_propuesto}-${proposal.justificacion}-${activeUserId}`
+      : null
+
+  const sessionEpochRef = useRef(sessionEpoch)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    if (sessionEpochRef.current !== sessionEpoch) {
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+      sessionEpochRef.current = sessionEpoch
+      setInternalToken(null)
+      setPreparedSummary(null)
+      setSuccessResult(null)
+      setError(null)
+      setIsPreparing(false)
+      setIsConfirming(false)
+    }
+  }, [sessionEpoch])
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+    }
+  }, [])
+
+  // Ajustar estado durante render si cambia la propuesta o el usuario de la sesión
   if (currentProposalKey !== prevProposalKey) {
     setPrevProposalKey(currentProposalKey)
     setInternalToken(null)
@@ -55,6 +89,8 @@ export function ActionConfirmationModal({
   }
 
   const handleClose = () => {
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
     setInternalToken(null)
     setPreparedSummary(null)
     setSuccessResult(null)
@@ -68,19 +104,57 @@ export function ActionConfirmationModal({
     setError(null)
     setIsPreparing(true)
 
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    const requestEpoch = sessionEpochRef.current
+
     try {
-      // Llamada formal a prepareAction({ action_type, target_id, payload })
-      const res = await prepareAction({
-        action_type: proposal.action_type,
-        target_id: proposal.tarea_id,
-        payload: {
+      // Llamada formal a prepareAction({ action_type, target_id, payload, org_id })
+      const res = await prepareAction(
+        {
+          action_type: proposal.action_type,
+          target_id: proposal.tarea_id,
+          payload: {
+            nuevo_estado: proposal.estado_propuesto,
+            justificacion: proposal.justificacion,
+            org_id: proposal.org_id,
+          },
+          tarea_id: proposal.tarea_id,
+          org_id: proposal.org_id,
           nuevo_estado: proposal.estado_propuesto,
           justificacion: proposal.justificacion,
         },
-        tarea_id: proposal.tarea_id,
-        nuevo_estado: proposal.estado_propuesto,
-        justificacion: proposal.justificacion,
-      })
+        controller.signal,
+      )
+
+      // Ignorar si la época cambió, el modal se cerró o la petición se abortó
+      if (
+        requestEpoch !== sessionEpochRef.current ||
+        controller.signal.aborted ||
+        abortControllerRef.current !== controller
+      ) {
+        return
+      }
+
+      // Validar coincidencia de la respuesta de prepareAction con la propuesta mostrada
+      const prep = res.proposal
+      const matches =
+        prep.tarea_id === proposal.tarea_id &&
+        prep.org_id === proposal.org_id &&
+        prep.estado_propuesto === proposal.estado_propuesto &&
+        prep.justificacion === proposal.justificacion
+
+      if (!matches) {
+        setInternalToken(null)
+        setPreparedSummary(null)
+        setError({
+          message:
+            'Los datos de la propuesta preparada por el servidor no coinciden con la acción solicitada. Confirmación deshabilitada por seguridad (PR-1, PR-6).',
+          principleViolated: 'PR-6',
+        })
+        return
+      }
 
       // Guardar token efímero internamente sin imprimirlo en consola ni en el DOM
       setInternalToken(res.proposal.confirmation_token)
@@ -88,6 +162,14 @@ export function ActionConfirmationModal({
         `Acción preparada para la tarea ${res.proposal.tarea_id} (${res.proposal.org_id}). Nuevo estado: ${res.proposal.estado_propuesto}. Token de confirmación efímero emitido con vigencia de 5 minutos.`,
       )
     } catch (err) {
+      if (
+        requestEpoch !== sessionEpochRef.current ||
+        controller.signal.aborted ||
+        abortControllerRef.current !== controller
+      ) {
+        return
+      }
+
       if (err instanceof ApiClientError) {
         setError({
           message: err.message,
@@ -102,7 +184,13 @@ export function ActionConfirmationModal({
         })
       }
     } finally {
-      setIsPreparing(false)
+      if (
+        requestEpoch === sessionEpochRef.current &&
+        !controller.signal.aborted &&
+        abortControllerRef.current === controller
+      ) {
+        setIsPreparing(false)
+      }
     }
   }
 
@@ -118,12 +206,35 @@ export function ActionConfirmationModal({
     setError(null)
     setIsConfirming(true)
 
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    const requestEpoch = sessionEpochRef.current
+
     try {
       // confirmAction envía el token efímero sin imprimirlo
-      const res = await confirmAction(internalToken)
+      const res = await confirmAction(internalToken, controller.signal)
+
+      // Ignorar si la época cambió, el modal se cerró o la petición se abortó
+      if (
+        requestEpoch !== sessionEpochRef.current ||
+        controller.signal.aborted ||
+        abortControllerRef.current !== controller
+      ) {
+        return
+      }
+
       setSuccessResult(res)
       onSuccess?.(res)
     } catch (err) {
+      if (
+        requestEpoch !== sessionEpochRef.current ||
+        controller.signal.aborted ||
+        abortControllerRef.current !== controller
+      ) {
+        return
+      }
+
       if (err instanceof ApiClientError) {
         setError({
           message: err.message,
@@ -138,7 +249,13 @@ export function ActionConfirmationModal({
         })
       }
     } finally {
-      setIsConfirming(false)
+      if (
+        requestEpoch === sessionEpochRef.current &&
+        !controller.signal.aborted &&
+        abortControllerRef.current === controller
+      ) {
+        setIsConfirming(false)
+      }
     }
   }
 

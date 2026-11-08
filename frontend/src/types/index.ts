@@ -75,6 +75,7 @@ export interface ActionPrepareRequest {
   tarea_id: string
   nuevo_estado: TaskState
   justificacion: string
+  org_id?: string
   action_type?: string
   target_id?: string
   payload?: {

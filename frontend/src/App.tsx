@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { CheckCircle2, X } from 'lucide-react'
 import { isMockMode } from './services/api'
 import type {
@@ -19,8 +19,10 @@ export function App() {
   const [pendingProposal, setPendingProposal] = useState<ActionProposal | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [notification, setNotification] = useState<string | null>(null)
+  const sessionEpochRef = useRef(0)
 
   const handleSessionChange = useCallback((user: SimulatedUser) => {
+    sessionEpochRef.current += 1
     setCurrentUser(user)
     setActiveTraces([])
     setPendingProposal(null)
@@ -45,7 +47,6 @@ export function App() {
       `Acción confirmada: Tarea ${result.tarea_id} actualizada a ${result.nuevo_estado} (Evento #${result.evento_id}).`,
     )
   }, [])
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
       {/* Barra superior con encabezado institucional y selector de sesión */}
@@ -118,8 +119,10 @@ export function App() {
 
       {/* Modal interactivo de confirmación en dos pasos (PR-1, PR-6) */}
       <ActionConfirmationModal
+        key={`modal-${currentUser?.usuario_id ?? 'none'}`}
         isOpen={isModalOpen}
         proposal={pendingProposal}
+        currentUser={currentUser}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleActionSuccess}
       />
