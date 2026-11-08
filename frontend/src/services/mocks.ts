@@ -456,7 +456,7 @@ export async function mockPrepareAction(
     proposal: {
       action_type: 'CAMBIO_ESTADO_TAREA',
       tarea_id: request.tarea_id,
-      org_id: 'ORG-05',
+      org_id: request.org_id || 'ORG-05',
       estado_actual: 'en_curso',
       estado_propuesto: request.nuevo_estado,
       justificacion: request.justificacion,

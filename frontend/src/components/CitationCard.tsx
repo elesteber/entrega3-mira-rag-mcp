@@ -117,4 +117,3 @@ export function CitationCard({
 }
 
 export default CitationCard
-

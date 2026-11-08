@@ -105,8 +105,10 @@ describe('ActionConfirmationModal Component (T039)', () => {
           payload: {
             nuevo_estado: 'completada',
             justificacion: mockProposal.justificacion,
+            org_id: 'ORG-05',
           },
         }),
+        expect.any(AbortSignal),
       )
     })
 
@@ -125,7 +127,7 @@ describe('ActionConfirmationModal Component (T039)', () => {
     await user.click(confirmBtn)
 
     await waitFor(() => {
-      expect(confirmSpy).toHaveBeenCalledWith('super-secret-hmac-token-12345')
+      expect(confirmSpy).toHaveBeenCalledWith('super-secret-hmac-token-12345', expect.any(AbortSignal))
     })
 
     // Verificar resultado exitoso y notificación
@@ -240,5 +242,139 @@ describe('ActionConfirmationModal Component (T039)', () => {
     await user.click(closeIconBtn)
     expect(handleClose).toHaveBeenCalledTimes(2)
   })
-})
 
+  it('respuesta de prepare que no coincide: muestra error y deja confirmación deshabilitada', async () => {
+    const user = userEvent.setup()
+
+    // Servidor retorna tarea u organización o estado o justificación diferente
+    vi.spyOn(api, 'prepareAction').mockResolvedValueOnce({
+      proposal: {
+        ...mockProposal,
+        tarea_id: 'T-999', // No coincide
+        confirmation_token: 'fake-token',
+      },
+    } as ActionPrepareResponse)
+
+    render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={mockProposal}
+        onClose={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(
+        screen.getByText(/Los datos de la propuesta preparada por el servidor no coinciden con la acción solicitada/i),
+      ).toBeInTheDocument()
+      expect(screen.getByText(/Principio violado: PR-6/i)).toBeInTheDocument()
+    })
+
+    // La confirmación no debe haberse habilitado
+    expect(screen.queryByRole('button', { name: /confirmar y ejecutar/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /preparar acción/i })).toBeInTheDocument()
+  })
+
+  it('cambio de justificación invalida el token y vuelve al paso de preparación', async () => {
+    const user = userEvent.setup()
+
+    vi.spyOn(api, 'prepareAction').mockResolvedValue({
+      proposal: {
+        ...mockProposal,
+        confirmation_token: 'token-valido-1',
+      },
+    } as ActionPrepareResponse)
+
+    const { rerender } = render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={mockProposal}
+        onClose={vi.fn()}
+      />,
+    )
+
+    // Prepara la acción
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /confirmar y ejecutar/i })).toBeInTheDocument()
+    })
+
+    // Se cambia la justificación en la propuesta
+    const updatedProposal: ActionProposal = {
+      ...mockProposal,
+      justificacion: 'Nueva justificación ingresada tras corregir requerimientos',
+    }
+
+    rerender(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={updatedProposal}
+        onClose={vi.fn()}
+      />,
+    )
+
+    // El token preparado debe haberse descartado y el botón de confirmación ya no debe estar disponible
+    expect(screen.queryByRole('button', { name: /confirmar y ejecutar/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /preparar acción/i })).toBeInTheDocument()
+    expect(screen.getByText('Nueva justificación ingresada tras corregir requerimientos')).toBeInTheDocument()
+  })
+
+  it('ignora respuesta tardía tras cerrar el modal y no actualiza estado ni ejecuta', async () => {
+    const user = userEvent.setup()
+    let resolvePrepare!: (value: ActionPrepareResponse) => void
+    const deferredPrepare = new Promise<ActionPrepareResponse>((resolve) => {
+      resolvePrepare = resolve
+    })
+
+    vi.spyOn(api, 'prepareAction').mockImplementation(() => deferredPrepare)
+    const handleClose = vi.fn()
+
+    const { rerender } = render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={mockProposal}
+        onClose={handleClose}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    // El usuario cierra el modal mediante el botón de la esquina (X) mientras la llamada está en vuelo
+    await user.click(screen.getByRole('button', { name: /cerrar modal de confirmación/i }))
+    expect(handleClose).toHaveBeenCalled()
+
+    // Se cierra el modal en el padre
+    rerender(
+      <ActionConfirmationModal
+        isOpen={false}
+        proposal={mockProposal}
+        onClose={handleClose}
+      />,
+    )
+
+    // Ahora se resuelve la respuesta tardía
+    resolvePrepare({
+      proposal: {
+        ...mockProposal,
+        confirmation_token: 'late-token-never-used',
+      },
+    })
+
+    await new Promise((r) => setTimeout(r, 50))
+
+    // Al reabrir el modal, no debe haber estado preparado residual
+    rerender(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={mockProposal}
+        onClose={handleClose}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: /confirmar y ejecutar/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /preparar acción/i })).toBeInTheDocument()
+  })
+})

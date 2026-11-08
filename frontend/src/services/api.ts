@@ -63,6 +63,7 @@ const REQUEST_TIMEOUT_MS = 60000
 async function requestWithTimeout<T>(
   path: string,
   options: RequestInit = {},
+  externalSignal?: AbortSignal,
 ): Promise<T> {
   const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '')
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
@@ -70,6 +71,18 @@ async function requestWithTimeout<T>(
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  const abortListener = () => {
+    controller.abort()
+  }
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', abortListener)
+    }
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -116,6 +129,9 @@ async function requestWithTimeout<T>(
     )
   } finally {
     clearTimeout(timeoutId)
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', abortListener)
+    }
   }
 }
 
@@ -140,14 +156,21 @@ export async function switchSession(userId: string): Promise<SessionTokenRespons
   return res
 }
 
-export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
+export async function sendChat(
+  request: ChatRequest,
+  signal?: AbortSignal,
+): Promise<ChatResponse> {
   if (isMockMode()) {
     return mockSendChat(request)
   }
-  return requestWithTimeout<ChatResponse>('/api/chat', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
+  return requestWithTimeout<ChatResponse>(
+    '/api/chat',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    signal,
+  )
 }
 
 export type ActionPrepareInput =
@@ -159,10 +182,14 @@ export type ActionPrepareInput =
       tarea_id?: string
       nuevo_estado?: TaskState
       justificacion?: string
+      org_id?: string
     }
+
+const VALID_TASK_STATES: ReadonlySet<string> = new Set(['pendiente', 'en_curso', 'completada'])
 
 export async function prepareAction(
   request: ActionPrepareInput,
+  signal?: AbortSignal,
 ): Promise<ActionPrepareResponse> {
   const tareaId =
     ('tarea_id' in request && request.tarea_id) ||
@@ -174,40 +201,60 @@ export async function prepareAction(
       ? (request.payload as { nuevo_estado?: TaskState; justificacion?: string })
       : null
 
-  const nuevoEstado =
-    request.nuevo_estado ||
-    payloadObj?.nuevo_estado ||
-    'completada'
+  const nuevoEstado = request.nuevo_estado || payloadObj?.nuevo_estado
+
+  if (!nuevoEstado || !VALID_TASK_STATES.has(nuevoEstado)) {
+    throw new ApiClientError(
+      'INVALID_TASK_STATE',
+      'El estado propuesto es requerido y debe ser uno de: pendiente, en_curso o completada.',
+      null,
+      400,
+    )
+  }
 
   const justificacion =
     request.justificacion ||
     payloadObj?.justificacion ||
     ''
 
+  const orgId =
+    ('org_id' in request && typeof request.org_id === 'string' && request.org_id) ||
+    (payloadObj && 'org_id' in payloadObj && typeof payloadObj.org_id === 'string' ? payloadObj.org_id : undefined)
+
   const normalizedRequest: ActionPrepareRequest = {
     tarea_id: tareaId,
-    nuevo_estado: nuevoEstado,
+    nuevo_estado: nuevoEstado as TaskState,
     justificacion: justificacion,
+    ...(orgId ? { org_id: orgId } : {}),
   }
 
   if (isMockMode()) {
     return mockPrepareAction(normalizedRequest)
   }
-  return requestWithTimeout<ActionPrepareResponse>('/api/action/prepare', {
-    method: 'POST',
-    body: JSON.stringify(normalizedRequest),
-  })
+  return requestWithTimeout<ActionPrepareResponse>(
+    '/api/action/prepare',
+    {
+      method: 'POST',
+      body: JSON.stringify(normalizedRequest),
+    },
+    signal,
+  )
 }
 
 export async function confirmAction(
   confirmationToken: string,
+  signal?: AbortSignal,
 ): Promise<ActionConfirmResponse> {
   if (isMockMode()) {
     return mockConfirmAction(confirmationToken)
   }
   const body: ActionConfirmRequest = { confirmation_token: confirmationToken }
-  return requestWithTimeout<ActionConfirmResponse>('/api/action/confirm', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  })
+  return requestWithTimeout<ActionConfirmResponse>(
+    '/api/action/confirm',
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+    },
+    signal,
+  )
 }
