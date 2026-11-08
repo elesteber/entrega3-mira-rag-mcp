@@ -283,8 +283,8 @@
           "ancla": "La organización entrega entre 20 y 30 ejemplos del formulario"
         }
       ],
-      "respuesta_esperada": "Presenta ambas fuentes vigentes sin elegir: FIC-PLA v1 §1 dice que las plantillas reconocen desde el primer día cualquier documento del proceso sin ejemplos de la organización; POL-FOR v1 §2 exige entre 20 y 30 ejemplos para dejar operativo un formulario propio (que también es un documento del proceso). Debe indicar la contradicción y que la resuelve una persona.",
-      "notas": "Conflicto entre dos documentos vigentes del kit (resuelve el pendiente de research.md §7.2)."
+      "respuesta_esperada": "Presenta ambas fuentes vigentes y su alcance distinto: FIC-PLA v1 §1 hace una afirmación general (las plantillas reconocen desde el primer día cualquier documento del proceso, sin ejemplos de la organización); POL-FOR v1 §2 fija un requisito específico para los formularios propios (entre 20 y 30 ejemplos para dejarlos operativos). Debe responder que, para un formulario propio, sí se exigen ejemplos según POL-FOR, y advertir que la redacción absoluta de FIC-PLA («cualquier documento») es inconsistente con ese requisito si el formulario propio se considera documento del proceso. No debe afirmar que toda excepción sea una contradicción ni elegir una fuente descartando la otra: señala la posible inconsistencia para que la confirme una persona.",
+      "notas": "Tensión entre una afirmación general (FIC-PLA) y un requisito específico (POL-FOR), ambos vigentes. POL-FOR §1 define el formulario propio como distinto de los documentos estándar; el conflicto existe porque FIC-PLA dice «cualquier documento del proceso». Ajustado según revisión del PR #8."
     },
     {
       "id": "GS-19",
@@ -306,8 +306,8 @@
           "ancla": "El ajuste de lectura toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos."
         }
       ],
-      "respuesta_esperada": "Presenta ambas fuentes vigentes sin elegir: GUI-INC v2 §1 fija la meta de producción en diez días hábiles desde la firma, pero POL-FOR v1 §2 indica que el ajuste de un formulario propio toma 10 a 15 días hábiles desde recibir los ejemplos, y GUI-INC v2 §3 (criterio 6) exige que todos los formularios propios estén «operativos» para pasar a producción. Debe señalar que las fuentes no son compatibles en ese caso.",
-      "notas": "Conflicto entre dos documentos vigentes del kit."
+      "respuesta_esperada": "Responde de forma condicional, presentando ambas fuentes vigentes: GUI-INC v2 §1 fija como meta estar en producción dentro de diez días hábiles desde la firma, y GUI-INC v2 §3 (criterio 6) exige que todos los formularios propios estén «operativos» para pasar a producción; POL-FOR v1 §2 indica que el ajuste de un formulario propio toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos. Debe explicar que la meta solo es alcanzable si los ejemplos completos se entregan al firmar y el ajuste toma el mínimo de 10 días; si los ejemplos llegan después o el ajuste se extiende, la meta no se cumple. No debe afirmar que siempre es imposible, sino señalar el conflicto de planificación para que lo gestione una persona.",
+      "notas": "Conflicto de planificación entre dos documentos vigentes del kit: la meta de diez días (GUI-INC) y la duración del ajuste (POL-FOR) solo son compatibles en el mejor caso. Ajustado según revisión del PR #8."
     },
     {
       "id": "GS-20",

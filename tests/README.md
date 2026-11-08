@@ -9,7 +9,7 @@ Este directorio alojará la batería de pruebas automatizadas y el framework de 
 
 ## 1. Componentes Planificados
 
-- **`golden_set.json` (o `.yaml`):** Conjunto fijo de al menos 20 preguntas redactadas para evaluar el CU-3:
+- **`evaluation/goldenset_cases.json`:** Conjunto fijo de al menos 20 preguntas redactadas para evaluar el CU-3:
   - 12 preguntas con respuesta en el corpus (con fragmento esperado y cita exacta).
   - 4 preguntas sin respuesta en el corpus (evaluación de abstención correcta).
   - 2 preguntas con conflicto entre fuentes vigentes (evaluación de presentación imparcial).
