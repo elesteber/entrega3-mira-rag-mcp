@@ -13,10 +13,11 @@ import { EvidenceBadge } from './EvidenceBadge'
 import { CitationCard } from './CitationCard'
 
 export interface ChatInterfaceProps {
-  onResponse?: (response: ChatResponse) => void
-  onActionProposal?: (proposal: ActionProposal) => void
+  onResponse?: (response: ChatResponse, epoch?: number) => void
+  onActionProposal?: (proposal: ActionProposal, epoch?: number) => void
   organizationContext?: string | null
   className?: string
+  sessionEpoch?: number
 }
 
 interface MessageItem {
@@ -45,6 +46,7 @@ export function ChatInterface({
   onActionProposal,
   organizationContext,
   className = '',
+  sessionEpoch = 0,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -52,6 +54,24 @@ export function ChatInterface({
   const [error, setError] = useState<ChatError | null>(null)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const messageCounterRef = useRef(0)
+  const sessionEpochRef = useRef(sessionEpoch)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    if (sessionEpochRef.current !== sessionEpoch) {
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+      sessionEpochRef.current = sessionEpoch
+      setLoading(false)
+    }
+  }, [sessionEpoch])
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+      abortControllerRef.current = null
+    }
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' })
@@ -80,12 +100,25 @@ export function ChatInterface({
       content: m.content,
     }))
 
+    abortControllerRef.current?.abort()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+    const requestEpoch = sessionEpochRef.current
+
     try {
-      const response = await sendChat({
-        message: trimmed,
-        organization_context: organizationContext,
-        conversation_history: history,
-      })
+      const response = await sendChat(
+        {
+          message: trimmed,
+          organization_context: organizationContext,
+          conversation_history: history,
+        },
+        controller.signal,
+      )
+
+      // Si la época cambió mientras la promesa se resolvía, se descarta silenciosamente
+      if (requestEpoch !== sessionEpochRef.current || controller.signal.aborted) {
+        return
+      }
 
       messageCounterRef.current += 1
       const assistantMessage: MessageItem = {
@@ -98,12 +131,16 @@ export function ChatInterface({
       }
 
       setMessages([...nextMessages, assistantMessage])
-      onResponse?.(response)
+      onResponse?.(response, requestEpoch)
 
       if (response.action_proposal) {
-        onActionProposal?.(response.action_proposal)
+        onActionProposal?.(response.action_proposal, requestEpoch)
       }
     } catch (err) {
+      if (requestEpoch !== sessionEpochRef.current || controller.signal.aborted) {
+        return
+      }
+
       if (err instanceof ApiClientError) {
         setError({
           message: err.message,
@@ -118,7 +155,9 @@ export function ChatInterface({
         })
       }
     } finally {
-      setLoading(false)
+      if (requestEpoch === sessionEpochRef.current && !controller.signal.aborted) {
+        setLoading(false)
+      }
     }
   }
 

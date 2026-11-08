@@ -130,4 +130,83 @@ describe('App Component (T023 / T054)', () => {
       expect(screen.queryByText('consultar_integracion')).not.toBeInTheDocument()
     })
   })
+
+  it('invalida respuestas pendientes al cambiar de sesión y no actualiza trazas ni mensajes', async () => {
+    const user = userEvent.setup()
+    let resolveDeferredChat!: (value: ChatResponse) => void
+    const deferredChatPromise = new Promise<ChatResponse>((resolve) => {
+      resolveDeferredChat = resolve
+    })
+
+    const sendChatSpy = vi.spyOn(api, 'sendChat').mockImplementation(() => deferredChatPromise)
+
+    render(<App />)
+
+    // Esperar inicialización en U-I1
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    // Enviar consulta como U-I1 usando una pregunta de ejemplo
+    const exampleQuestion = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(exampleQuestion)
+
+    expect(sendChatSpy).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/El asistente está respondiendo…/i)).toBeInTheDocument()
+
+    // Cambiar de sesión a U-I2 antes de que la promesa se resuelva
+    const select = screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })
+    await user.selectOptions(select, 'U-I2')
+
+    await waitFor(() => {
+      expect(select).toHaveValue('U-I2')
+    })
+
+    // Ahora resolver la promesa diferida de la consulta enviada en la sesión anterior
+    const staleResponse: ChatResponse = {
+      answer: 'Respuesta diferida obsoleta de U-I1',
+      citations: [
+        {
+          chunk_id: 'GUI-INC_v2#sec3_1',
+          doc_code: 'GUI-INC_v2',
+          doc_title: 'Guía de Incorporación',
+          section: '§3.1',
+          version: 'v2',
+          status: 'vigente',
+          excerpt: 'Requisitos de salida a producción.',
+        },
+      ],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [
+        {
+          tool_name: 'consultar_integracion',
+          parameters: { org_id: 'ORG-07' },
+          response_summary: 'Telemetría obsoleta de U-I1',
+          execution_time_ms: 10.0,
+          success: true,
+        },
+      ],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Acción obsoleta que no debe abrirse en la sesión nueva',
+        confirmation_token: 'stale-token',
+        expires_at: '2026-11-08T23:59:59Z',
+      },
+    }
+
+    resolveDeferredChat(staleResponse)
+
+    // Dar tiempo para que cualquier microtarea o callback pendiente se procese
+    await new Promise((r) => setTimeout(r, 50))
+
+    // Verificar que en la sesión nueva no se agregaron los mensajes ni se actualizaron las trazas ni se abrió propuesta
+    expect(screen.queryByText('Respuesta diferida obsoleta de U-I1')).not.toBeInTheDocument()
+    expect(screen.queryByText('Telemetría obsoleta de U-I1')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Revisar propuesta/i)).not.toBeInTheDocument()
+    expect(screen.getByText('Aún sin consultas')).toBeInTheDocument()
+  })
 })

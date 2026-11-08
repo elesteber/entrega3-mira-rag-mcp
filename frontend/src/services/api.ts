@@ -62,6 +62,7 @@ const REQUEST_TIMEOUT_MS = 60000
 async function requestWithTimeout<T>(
   path: string,
   options: RequestInit = {},
+  externalSignal?: AbortSignal,
 ): Promise<T> {
   const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '')
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
@@ -69,6 +70,18 @@ async function requestWithTimeout<T>(
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  const abortListener = () => {
+    controller.abort()
+  }
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', abortListener)
+    }
+  }
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -115,6 +128,9 @@ async function requestWithTimeout<T>(
     )
   } finally {
     clearTimeout(timeoutId)
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', abortListener)
+    }
   }
 }
 
@@ -139,14 +155,21 @@ export async function switchSession(userId: string): Promise<SessionTokenRespons
   return res
 }
 
-export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
+export async function sendChat(
+  request: ChatRequest,
+  signal?: AbortSignal,
+): Promise<ChatResponse> {
   if (isMockMode()) {
     return mockSendChat(request)
   }
-  return requestWithTimeout<ChatResponse>('/api/chat', {
-    method: 'POST',
-    body: JSON.stringify(request),
-  })
+  return requestWithTimeout<ChatResponse>(
+    '/api/chat',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+    },
+    signal,
+  )
 }
 
 export async function prepareAction(

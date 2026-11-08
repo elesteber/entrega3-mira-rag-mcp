@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { isMockMode } from './services/api'
-import type { SimulatedUser, McpTrace, ChatResponse } from './types'
+import type { SimulatedUser, McpTrace, ChatResponse, ActionProposal } from './types'
 import { SessionSelector } from './components/SessionSelector'
 import { ChatInterface } from './components/ChatInterface'
 import { McpTracePanel } from './components/McpTracePanel'
@@ -8,14 +8,27 @@ import { McpTracePanel } from './components/McpTracePanel'
 export function App() {
   const [currentUser, setCurrentUser] = useState<SimulatedUser | null>(null)
   const [activeTraces, setActiveTraces] = useState<McpTrace[]>([])
+  const sessionEpochRef = useRef(0)
 
   const handleSessionChange = useCallback((user: SimulatedUser) => {
+    sessionEpochRef.current += 1
     setCurrentUser(user)
     setActiveTraces([])
   }, [])
 
-  const handleChatResponse = useCallback((response: ChatResponse) => {
+  const handleChatResponse = useCallback((response: ChatResponse, epoch?: number) => {
+    if (epoch !== undefined && epoch !== sessionEpochRef.current) {
+      return
+    }
     setActiveTraces(response.mcp_traces || [])
+  }, [])
+
+  const handleActionProposal = useCallback((proposal: ActionProposal, epoch?: number) => {
+    if (epoch !== undefined && epoch !== sessionEpochRef.current) {
+      return
+    }
+    // Manejo de apertura de modal interactivo para confirmación de acciones
+    void proposal
   }, [])
 
   return (
@@ -54,6 +67,7 @@ export function App() {
               key={currentUser?.usuario_id ?? 'initial-session'}
               organizationContext={currentUser?.orgs_asignadas?.[0] ?? null}
               onResponse={handleChatResponse}
+              onActionProposal={handleActionProposal}
             />
           </section>
 

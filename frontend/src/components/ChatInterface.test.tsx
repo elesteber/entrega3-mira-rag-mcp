@@ -45,11 +45,14 @@ describe('ChatInterface Component (T028)', () => {
     const exampleBtn = screen.getByText('¿Qué tareas tiene pendientes ORG-05?')
     await user.click(exampleBtn)
 
-    expect(sendChatSpy).toHaveBeenCalledWith({
-      message: '¿Qué tareas tiene pendientes ORG-05?',
-      organization_context: undefined,
-      conversation_history: [],
-    })
+    expect(sendChatSpy).toHaveBeenCalledWith(
+      {
+        message: '¿Qué tareas tiene pendientes ORG-05?',
+        organization_context: undefined,
+        conversation_history: [],
+      },
+      expect.any(AbortSignal),
+    )
 
     await waitFor(() => {
       expect(
