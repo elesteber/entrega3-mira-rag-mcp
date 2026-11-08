@@ -331,6 +331,58 @@ class TestConfirmationTokens:
             verify_confirmation_token(token)
         assert "no existe en el catálogo" in str(exc_info.value)
 
+    def test_verify_confirmation_token_rodrigo_claims_compatibility(self):
+        """Verifica compatibilidad con claims de Rodrigo (usuario_id y estado_anterior)."""
+        settings = get_settings()
+        now = datetime.now(timezone.utc)
+        payload = {
+            "usuario_id": "U-I1",
+            "tarea_id": "T-006",
+            "org_id": "ORG-05",
+            "estado_anterior": "en_curso",
+            "nuevo_estado": "completada",
+            "jti": str(uuid.uuid4()),
+            "iat": int(now.timestamp()),
+            "exp": int((now + timedelta(minutes=5)).timestamp()),
+            "type": "action_confirmation",
+        }
+        token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+        verified = verify_confirmation_token(token)
+        assert verified["sub"] == "U-I1"
+        assert verified["usuario_id"] == "U-I1"
+        assert verified["estado_actual"] == "en_curso"
+        assert verified["estado_anterior"] == "en_curso"
+
+    def test_verify_confirmation_token_inconsistent_equivalent_claims_rejected(self):
+        """Verifica que discrepancias entre claims equivalentes sean rechazadas con error."""
+        settings = get_settings()
+        now = datetime.now(timezone.utc)
+        base = {
+            "sub": "U-I1",
+            "usuario_id": "U-I2",  # Discrepancia con sub
+            "tarea_id": "T-006",
+            "org_id": "ORG-05",
+            "estado_actual": "en_curso",
+            "estado_anterior": "en_curso",
+            "nuevo_estado": "completada",
+            "jti": str(uuid.uuid4()),
+            "iat": int(now.timestamp()),
+            "exp": int((now + timedelta(minutes=5)).timestamp()),
+            "type": "action_confirmation",
+        }
+        token1 = jwt.encode(base, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+        with pytest.raises(InvalidTokenError) as exc:
+            verify_confirmation_token(token1)
+        assert "Inconsistencia" in str(exc.value)
+
+        # Discrepancia en estado_actual vs estado_anterior
+        base["usuario_id"] = "U-I1"
+        base["estado_anterior"] = "pendiente"  # Discrepancia con en_curso
+        token2 = jwt.encode(base, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+        with pytest.raises(InvalidTokenError) as exc:
+            verify_confirmation_token(token2)
+        assert "Inconsistencia" in str(exc.value)
+
     def test_verify_confirmation_token_inconsistent_timestamps(self):
         settings = get_settings()
         now = datetime.now(timezone.utc)

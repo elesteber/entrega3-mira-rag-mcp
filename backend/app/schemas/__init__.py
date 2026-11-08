@@ -10,8 +10,18 @@ from backend.app.schemas.chat import (
     HistoryMessage,
     McpTrace,
 )
+from backend.app.schemas.actions import (
+    ActionConfirmRequest,
+    ActionConfirmResponse,
+    ActionPrepareRequest,
+    ActionPrepareResponse,
+)
 
 __all__ = [
+    "ActionConfirmRequest",
+    "ActionConfirmResponse",
+    "ActionPrepareRequest",
+    "ActionPrepareResponse",
     "ActionProposal",
     "ApiError",
     "ChatRequest",

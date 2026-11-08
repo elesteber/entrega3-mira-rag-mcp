@@ -302,10 +302,13 @@ def create_confirmation_token(
 
     payload = {
         "sub": user.usuario_id,
+        "usuario_id": user.usuario_id,  # Compatibilidad con servidor MCP de Rodrigo (PR #7)
         "rol": user.rol,
+        "rol_usuario": user.rol,        # Compatibilidad con esquema de eventos (events-schema.json)
         "tarea_id": clean_tarea,
         "org_id": clean_org,
         "estado_actual": clean_estado_act,
+        "estado_anterior": clean_estado_act,  # Compatibilidad con servidor MCP de Rodrigo (PR #7)
         "nuevo_estado": clean_nuevo_est,
         "justificacion": justificacion.strip() if justificacion else None,
         "jti": str(uuid.uuid4()),
@@ -353,11 +356,41 @@ def verify_confirmation_token(token: str) -> Dict[str, Any]:
     except jwt.PyJWTError as e:
         raise InvalidTokenError(f"Token de confirmación inválido o alterado: {str(e)}") from e
 
+    # Normalización y compatibilidad bidireccional entre claims de backend y servidor MCP (PR #7):
+    if "sub" not in payload and "usuario_id" in payload:
+        payload["sub"] = payload["usuario_id"]
+    if "usuario_id" not in payload and "sub" in payload:
+        payload["usuario_id"] = payload["sub"]
+
+    if "estado_actual" not in payload and "estado_anterior" in payload:
+        payload["estado_actual"] = payload["estado_anterior"]
+    if "estado_anterior" not in payload and "estado_actual" in payload:
+        payload["estado_anterior"] = payload["estado_actual"]
+
     # 1. Validar presencia de claims obligatorios
     missing_claims = [c for c in MANDATORY_CONFIRMATION_CLAIMS if c not in payload]
     if missing_claims:
         raise InvalidTokenError(
             f"Token de confirmación incompleto: faltan claims obligatorios: {sorted(missing_claims)}."
+        )
+
+    # 1.1 Validar consistencia criptográfica estricta entre claims equivalentes
+    if payload.get("sub") != payload.get("usuario_id"):
+        raise InvalidTokenError(
+            f"Inconsistencia en claims de identidad: 'sub' ({payload.get('sub')}) y "
+            f"'usuario_id' ({payload.get('usuario_id')}) difieren."
+        )
+
+    if payload.get("estado_actual") != payload.get("estado_anterior"):
+        raise InvalidTokenError(
+            f"Inconsistencia en claims de estado: 'estado_actual' ({payload.get('estado_actual')}) y "
+            f"'estado_anterior' ({payload.get('estado_anterior')}) difieren."
+        )
+
+    if "rol" in payload and "rol_usuario" in payload and payload.get("rol") != payload.get("rol_usuario"):
+        raise InvalidTokenError(
+            f"Inconsistencia en claims de rol: 'rol' ({payload.get('rol')}) y "
+            f"'rol_usuario' ({payload.get('rol_usuario')}) difieren."
         )
 
     # 2. Validar tipo de token

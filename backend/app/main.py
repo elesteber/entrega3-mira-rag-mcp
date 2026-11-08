@@ -13,6 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from backend.app.config import get_settings
 from backend.app.routers.session import router as session_router
 from backend.app.routers.chat import router as chat_router
+from backend.app.routers.actions import router as actions_router
 
 
 def create_app() -> FastAPI:
@@ -73,6 +74,7 @@ def create_app() -> FastAPI:
     # Inclusión de ruteadores implementados
     app.include_router(session_router)
     app.include_router(chat_router)
+    app.include_router(actions_router)
 
     return app
 
