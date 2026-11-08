@@ -377,4 +377,141 @@ describe('ActionConfirmationModal Component (T039)', () => {
     expect(screen.queryByRole('button', { name: /confirmar y ejecutar/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /preparar acción/i })).toBeInTheDocument()
   })
+
+  it('no acepta preparación antigua si cambia la propuesta durante la petición', async () => {
+    const user = userEvent.setup()
+    let resolvePrepareA!: (value: ActionPrepareResponse) => void
+    const deferredPrepareA = new Promise<ActionPrepareResponse>((resolve) => {
+      resolvePrepareA = resolve
+    })
+
+    vi.spyOn(api, 'prepareAction').mockImplementationOnce(() => deferredPrepareA)
+
+    const proposalA: ActionProposal = {
+      ...mockProposal,
+      justificacion: 'Justificación A original',
+    }
+    const proposalB: ActionProposal = {
+      ...mockProposal,
+      justificacion: 'Justificación B nueva mientras A pendiente',
+    }
+
+    const { rerender, container } = render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={proposalA}
+        onClose={vi.fn()}
+      />,
+    )
+
+    // Iniciar preparación de A (queda pendiente)
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    // Cambiar a propuesta B mientras la petición de A sigue en vuelo
+    rerender(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={proposalB}
+        onClose={vi.fn()}
+      />,
+    )
+
+    // Resolver la respuesta tardía de A con su token
+    resolvePrepareA({
+      proposal: {
+        ...proposalA,
+        confirmation_token: 'token-de-A-obsoleto',
+      },
+    })
+
+    await new Promise((r) => setTimeout(r, 50))
+
+    // La respuesta de A debe descartarse: no debe aparecer "Confirmar y ejecutar"
+    expect(screen.queryByRole('button', { name: /confirmar y ejecutar/i })).not.toBeInTheDocument()
+    // El botón "Preparar acción" debe seguir presente
+    expect(screen.getByRole('button', { name: /preparar acción/i })).toBeInTheDocument()
+    // El token de A no debe estar en el DOM
+    expect(container.innerHTML).not.toContain('token-de-A-obsoleto')
+  })
+
+  it('usa el token de la propuesta vigente tras descartar la preparación antigua', async () => {
+    const user = userEvent.setup()
+    let resolvePrepareA!: (value: ActionPrepareResponse) => void
+    const deferredPrepareA = new Promise<ActionPrepareResponse>((resolve) => {
+      resolvePrepareA = resolve
+    })
+
+    const confirmSpy = vi.spyOn(api, 'confirmAction').mockResolvedValue({
+      success: true,
+      evento_id: 99,
+      tarea_id: 'T-006',
+      org_id: 'ORG-05',
+      nuevo_estado: 'completada',
+      usuario_id: 'U-I1',
+      justificacion: 'Justificación B nueva mientras A pendiente',
+      fecha_cambio: '2026-11-07T12:01:00Z',
+    } as ActionConfirmResponse)
+
+    const proposalA: ActionProposal = {
+      ...mockProposal,
+      justificacion: 'Justificación A original',
+    }
+    const proposalB: ActionProposal = {
+      ...mockProposal,
+      justificacion: 'Justificación B nueva mientras A pendiente',
+    }
+
+    vi.spyOn(api, 'prepareAction')
+      .mockImplementationOnce(() => deferredPrepareA)
+      .mockResolvedValueOnce({
+        proposal: {
+          ...proposalB,
+          confirmation_token: 'token-de-B-vigente',
+        },
+      } as ActionPrepareResponse)
+
+    const { rerender } = render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={proposalA}
+        onClose={vi.fn()}
+      />,
+    )
+
+    // Iniciar preparación de A y luego cambiar a B mientras A está pendiente
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    rerender(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={proposalB}
+        onClose={vi.fn()}
+      />,
+    )
+
+    // Resolver A (debe descartarse)
+    resolvePrepareA({
+      proposal: {
+        ...proposalA,
+        confirmation_token: 'token-de-A-obsoleto',
+      },
+    })
+
+    await new Promise((r) => setTimeout(r, 50))
+
+    // Preparar B con el botón disponible
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /confirmar y ejecutar/i })).toBeInTheDocument()
+    })
+
+    // Confirmar: debe usar el token de B, nunca el de A
+    await user.click(screen.getByRole('button', { name: /confirmar y ejecutar/i }))
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalledWith('token-de-B-vigente', expect.any(AbortSignal))
+      expect(confirmSpy).not.toHaveBeenCalledWith('token-de-A-obsoleto', expect.any(AbortSignal))
+    })
+  })
 })
