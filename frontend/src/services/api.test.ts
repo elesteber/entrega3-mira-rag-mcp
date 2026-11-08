@@ -130,4 +130,27 @@ describe('Servicios API y Mocks (T015)', () => {
     expect(conf.tarea_id).toBe('T-006')
     expect(conf.nuevo_estado).toBe('completada')
   })
+
+  it('prepareAction lanza ApiClientError cuando nuevo_estado es ausente o inválido', async () => {
+    await switchSession('U-I1')
+
+    // @ts-expect-error probando valor ausente
+    await expect(prepareAction({ tarea_id: 'T-006', justificacion: 'Sin estado' })).rejects.toThrowError(
+      'El estado propuesto es requerido y debe ser uno de: pendiente, en_curso o completada.',
+    )
+
+    // @ts-expect-error probando valor inválido
+    await expect(prepareAction({ tarea_id: 'T-006', nuevo_estado: 'invalido', justificacion: 'Prueba' })).rejects.toThrowError(
+      ApiClientError,
+    )
+
+    try {
+      // @ts-expect-error probando valor inválido
+      await prepareAction({ tarea_id: 'T-006', nuevo_estado: 'invalido', justificacion: 'Prueba' })
+    } catch (err) {
+      const apiErr = err as ApiClientError
+      expect(apiErr.code).toBe('INVALID_TASK_STATE')
+      expect(apiErr.message).toBe('El estado propuesto es requerido y debe ser uno de: pendiente, en_curso o completada.')
+    }
+  })
 })

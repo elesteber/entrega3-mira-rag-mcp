@@ -92,4 +92,3 @@ describe('CitationCard Component (T033)', () => {
     expect(screen.queryByText('GUI-INC_v2#sec3_1')).not.toBeInTheDocument()
   })
 })
-

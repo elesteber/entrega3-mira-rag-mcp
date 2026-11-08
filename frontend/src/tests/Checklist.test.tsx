@@ -71,4 +71,3 @@ Progreso de tareas: 60% completado (6 de 10)
     })
   })
 })
-
