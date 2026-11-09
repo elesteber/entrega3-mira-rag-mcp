@@ -46,7 +46,7 @@
 - [X] T007 [P] [Rodrigo Guerrero] Implementar servidor base FastMCP en `backend/mcp/server.py` configurando el registro modular de herramientas de lectura y de mutación protegida.
 - [X] T008 [P] [Ángel Salgado] Implementar pipeline de chunking jerárquico determinista y persistencia en ChromaDB en `backend/rag/indexer.py` asegurando la generación y asignación de `chunk_id` determinista (`doc_code`, `version`, `section`, `status`).
 - [X] T009 [Ángel Salgado] Crear script ejecutable de indexación offline en `backend/rag/index_corpus.py` que cargue y vectorice los 5 documentos en `backend/rag/chroma_db` usando `paraphrase-multilingual-MiniLM-L12-v2`.
-- [ ] T010 [P] [Ángel Salgado] Implementar herramienta FastMCP `buscar_reglas` en `backend/mcp/tools/rag_tools.py` con filtros por vigencia (`vigente`, `todas`) y retorno de `chunk_id` estructurado según `contracts/mcp-tools.json`.
+- [X] T010 [P] [Ángel Salgado] Implementar herramienta FastMCP `buscar_reglas` en `backend/mcp/tools/rag_tools.py` con filtros por vigencia (`vigente`, `todas`) y retorno de `chunk_id` estructurado según `contracts/mcp-tools.json`.
 - [X] T011 [P] [Lester González] Configurar carga de entorno y configuración centralizada con Pydantic Settings en `backend/app/config.py` (`GEMINI_API_KEY`, `GEMINI_MODEL`, `SQLITE_DB_PATH`, `CHROMADB_PATH`, `JWT_SECRET`).
 - [X] T012 [P] [Lester González] Implementar módulo de seguridad y emisión de tokens de sesión demo firmados HMAC en `backend/app/security.py` para los 4 usuarios reales del kit (`U-I1`, `U-I2`, `U-I3`, `U-I4`).
 - [X] T013 [Lester González] Implementar cliente MCP asíncrono en `backend/mcp/client.py` para invocar herramientas del servidor FastMCP (`server.py`) inyectando el contexto de sesión confiable del operador.
