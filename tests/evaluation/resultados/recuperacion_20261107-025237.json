@@ -1,0 +1,3352 @@
+{
+  "fecha": "2026-11-07T02:52:37",
+  "golden_set_version": "1.0",
+  "modelo": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "casos_evaluados": 21,
+  "ks": [
+    1,
+    3,
+    4,
+    5
+  ],
+  "resultados": [
+    {
+      "configuracion": "A-128-denso",
+      "descripcion": "Encabezados Markdown, límite del modelo (128 tokens), búsqueda denso",
+      "estrategia": "encabezados",
+      "modo": "denso",
+      "opciones": {},
+      "max_seq_length": 128,
+      "total_fragmentos": 24,
+      "tokens_por_fragmento": {
+        "min": 37,
+        "max": 246,
+        "promedio": 117.1
+      },
+      "fragmentos_truncados": 11,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.7692,
+          "@3": 0.8462,
+          "@4": 0.8462,
+          "@5": 0.8462
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.5,
+          "@4": 0.5,
+          "@5": 0.5
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.8162,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4535,
+          "respondibles_promedio": 0.6679,
+          "sin_respuesta_max": 0.5635,
+          "sin_respuesta_promedio": 0.4929
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7888,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.789)",
+            "GUI-INC-V2-SEC4-P1 (0.604)",
+            "REQ-INT-V2-SEC4-P1 (0.581)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7859,
+          "top3": [
+            "GUI-INC-V2-SEC4-P1 (0.786)",
+            "GUI-INC-V2-SEC3-P1 (0.628)",
+            "GUI-INC-V2-SEC2-P1 (0.582)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.545,
+          "top3": [
+            "GUI-INC-V2-SEC2-P1 (0.545)",
+            "GUI-INC-V2-SEC3-P1 (0.525)",
+            "FIC-PLA-V1-SEC1-P1 (0.468)"
+          ],
+          "rangos": [
+            null
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6565,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P4 (0.656)",
+            "FIC-PLA-V1-SEC2-P3 (0.622)",
+            "FIC-PLA-V1-SEC2-P1 (0.496)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6613,
+          "top3": [
+            "REQ-INT-V2-SEC1-P1 (0.661)",
+            "REQ-INT-V2-SEC0-P1 (0.646)",
+            "REQ-INT-V2-SEC5-P1 (0.637)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7458,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.746)",
+            "REQ-INT-V2-SEC4-P1 (0.511)",
+            "GUI-INC-V2-SEC3-P1 (0.510)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7188,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.719)",
+            "GUI-INC-V2-SEC1-P1 (0.446)",
+            "POL-FOR-V1-SEC2-P1 (0.416)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7263,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.726)",
+            "POL-FOR-V1-SEC1-P1 (0.725)",
+            "POL-FOR-V1-SEC0-P1 (0.688)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6847,
+          "top3": [
+            "POL-FOR-V1-SEC3-P1 (0.685)",
+            "POL-FOR-V1-SEC2-P1 (0.610)",
+            "POL-FOR-V1-SEC1-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6252,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.625)",
+            "GUI-INC-V2-SEC1-P1 (0.555)",
+            "GUI-INC-V2-SEC3-P1 (0.526)"
+          ],
+          "rangos": [
+            9
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4535,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P2 (0.454)",
+            "FIC-PLA-V1-SEC2-P3 (0.437)",
+            "GUI-INC-V2-SEC1-P1 (0.403)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7219,
+          "top3": [
+            "REQ-INT-V2-SEC4-P1 (0.722)",
+            "REQ-INT-V2-SEC2-P1 (0.580)",
+            "GUI-INC-V2-SEC2-P1 (0.577)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.684,
+          "top3": [
+            "REQ-INT-V2-SEC1-P1 (0.684)",
+            "REQ-INT-V2-SEC2-P1 (0.678)",
+            "REQ-INT-V2-SEC5-P1 (0.643)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5635,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.564)",
+            "GUI-INC-V2-SEC3-P1 (0.377)",
+            "GUI-INC-V2-SEC1-P1 (0.328)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.461,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.461)",
+            "POL-FOR-V1-SEC2-P1 (0.452)",
+            "FIC-PLA-V1-SEC2-P1 (0.420)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.503)",
+            "FIC-PLA-V1-SEC2-P3 (0.362)",
+            "GUI-INC-V2-SEC3-P1 (0.360)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4438,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.444)",
+            "FIC-PLA-V1-SEC2-P4 (0.350)",
+            "FIC-PLA-V1-SEC2-P2 (0.223)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.579,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.579)",
+            "POL-FOR-V1-SEC0-P1 (0.502)",
+            "GUI-INC-V2-SEC0-P1 (0.483)"
+          ],
+          "rangos": [
+            null,
+            null
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6942,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.694)",
+            "POL-FOR-V1-SEC2-P1 (0.618)",
+            "GUI-INC-V2-SEC3-P1 (0.531)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6249,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.625)",
+            "POL-FOR-V1-SEC2-P1 (0.596)",
+            "GUI-INC-V2-SEC2-P1 (0.564)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6589,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.659)",
+            "GUI-INC-V2-SEC4-P1 (0.555)",
+            "REQ-INT-V2-SEC4-P1 (0.519)"
+          ],
+          "rangos": [
+            2
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "A-128-hibrido",
+      "descripcion": "Encabezados Markdown, límite del modelo (128 tokens), búsqueda hibrido",
+      "estrategia": "encabezados",
+      "modo": "hibrido",
+      "opciones": {},
+      "max_seq_length": 128,
+      "total_fragmentos": 24,
+      "tokens_por_fragmento": {
+        "min": 37,
+        "max": 246,
+        "promedio": 117.1
+      },
+      "fragmentos_truncados": 11,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.7692,
+          "@3": 0.8462,
+          "@4": 0.9231,
+          "@5": 0.9231
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.5,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.8397,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4535,
+          "respondibles_promedio": 0.6679,
+          "sin_respuesta_max": 0.5635,
+          "sin_respuesta_promedio": 0.4929
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7888,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.789)",
+            "GUI-INC-V2-SEC2-P1 (0.531)",
+            "REQ-INT-V2-SEC4-P1 (0.581)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7859,
+          "top3": [
+            "GUI-INC-V2-SEC4-P1 (0.786)",
+            "GUI-INC-V2-SEC3-P1 (0.628)",
+            "GUI-INC-V2-SEC0-P1 (0.545)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.545,
+          "top3": [
+            "FIC-PLA-V1-SEC1-P1 (0.468)",
+            "GUI-INC-V2-SEC3-P1 (0.525)",
+            "GUI-INC-V2-SEC2-P1 (0.545)"
+          ],
+          "rangos": [
+            6
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6565,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P4 (0.656)",
+            "FIC-PLA-V1-SEC2-P3 (0.622)",
+            "REQ-INT-V2-SEC4-P1 (0.264)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6613,
+          "top3": [
+            "REQ-INT-V2-SEC1-P1 (0.661)",
+            "REQ-INT-V2-SEC5-P1 (0.637)",
+            "REQ-INT-V2-SEC0-P1 (0.646)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7458,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.746)",
+            "GUI-INC-V2-SEC3-P1 (0.510)",
+            "REQ-INT-V2-SEC4-P1 (0.511)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7188,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.719)",
+            "GUI-INC-V2-SEC3-P1 (0.399)",
+            "POL-FOR-V1-SEC2-P1 (0.416)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7263,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.726)",
+            "POL-FOR-V1-SEC3-P1 (0.672)",
+            "POL-FOR-V1-SEC1-P1 (0.725)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6847,
+          "top3": [
+            "POL-FOR-V1-SEC3-P1 (0.685)",
+            "POL-FOR-V1-SEC2-P1 (0.610)",
+            "POL-FOR-V1-SEC1-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6252,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.625)",
+            "GUI-INC-V2-SEC1-P1 (0.555)",
+            "FIC-PLA-V1-SEC2-P3 (0.498)"
+          ],
+          "rangos": [
+            4
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4535,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P2 (0.454)",
+            "GUI-INC-V2-SEC1-P1 (0.403)",
+            "FIC-PLA-V1-SEC2-P3 (0.437)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7219,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.580)",
+            "REQ-INT-V2-SEC4-P1 (0.722)",
+            "GUI-INC-V2-SEC2-P1 (0.577)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.684,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.678)",
+            "REQ-INT-V2-SEC1-P1 (0.684)",
+            "REQ-INT-V2-SEC5-P1 (0.643)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5635,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.564)",
+            "GUI-INC-V2-SEC3-P1 (0.377)",
+            "REQ-INT-V2-SEC5-P1 (0.281)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.461,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.461)",
+            "GUI-INC-V2-SEC2-P1 (0.353)",
+            "GUI-INC-V2-SEC1-P1 (0.411)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.360)",
+            "FIC-PLA-V1-SEC2-P3 (0.362)",
+            "POL-FOR-V1-SEC2-P1 (0.503)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4438,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.444)",
+            "FIC-PLA-V1-SEC2-P4 (0.350)",
+            "REQ-INT-V2-SEC4-P1 (0.111)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.579,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.579)",
+            "REQ-INT-V2-SEC1-P1 (0.428)",
+            "FIC-PLA-V1-SEC2-P3 (0.453)"
+          ],
+          "rangos": [
+            null,
+            4
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6942,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.694)",
+            "POL-FOR-V1-SEC2-P1 (0.618)",
+            "GUI-INC-V2-SEC2-P1 (0.467)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6249,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.625)",
+            "GUI-INC-V2-SEC3-P1 (0.560)",
+            "POL-FOR-V1-SEC2-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6589,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.659)",
+            "REQ-INT-V2-SEC4-P1 (0.519)",
+            "GUI-INC-V2-SEC4-P1 (0.555)"
+          ],
+          "rangos": [
+            3
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "A-256-denso",
+      "descripcion": "Encabezados Markdown, límite ampliado a 256 tokens, búsqueda denso",
+      "estrategia": "encabezados",
+      "modo": "denso",
+      "opciones": {},
+      "max_seq_length": 256,
+      "total_fragmentos": 24,
+      "tokens_por_fragmento": {
+        "min": 37,
+        "max": 246,
+        "promedio": 117.1
+      },
+      "fragmentos_truncados": 0,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.7692,
+          "@3": 0.7692,
+          "@4": 0.8462,
+          "@5": 0.8462
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.5,
+          "@4": 0.5,
+          "@5": 0.5
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.7995,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4535,
+          "respondibles_promedio": 0.6522,
+          "sin_respuesta_max": 0.5635,
+          "sin_respuesta_promedio": 0.4929
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6646,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.665)",
+            "GUI-INC-V2-SEC4-P1 (0.604)",
+            "REQ-INT-V2-SEC4-P1 (0.581)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7859,
+          "top3": [
+            "GUI-INC-V2-SEC4-P1 (0.786)",
+            "GUI-INC-V2-SEC3-P1 (0.635)",
+            "GUI-INC-V2-SEC2-P1 (0.566)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5247,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.525)",
+            "FIC-PLA-V1-SEC1-P1 (0.468)",
+            "REQ-INT-V2-SEC4-P1 (0.456)"
+          ],
+          "rangos": [
+            null
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6487,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P4 (0.649)",
+            "FIC-PLA-V1-SEC2-P3 (0.617)",
+            "FIC-PLA-V1-SEC2-P1 (0.496)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6367,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.637)",
+            "REQ-INT-V2-SEC4-P1 (0.599)",
+            "REQ-INT-V2-SEC0-P1 (0.576)"
+          ],
+          "rangos": [
+            4
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7458,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.746)",
+            "REQ-INT-V2-SEC4-P1 (0.511)",
+            "GUI-INC-V2-SEC3-P1 (0.491)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7188,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.719)",
+            "GUI-INC-V2-SEC1-P1 (0.446)",
+            "POL-FOR-V1-SEC2-P1 (0.416)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7263,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.726)",
+            "POL-FOR-V1-SEC1-P1 (0.725)",
+            "POL-FOR-V1-SEC3-P1 (0.672)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6847,
+          "top3": [
+            "POL-FOR-V1-SEC3-P1 (0.685)",
+            "POL-FOR-V1-SEC2-P1 (0.610)",
+            "POL-FOR-V1-SEC1-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6252,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.625)",
+            "GUI-INC-V2-SEC3-P1 (0.562)",
+            "GUI-INC-V2-SEC1-P1 (0.555)"
+          ],
+          "rangos": [
+            7
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4535,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P2 (0.454)",
+            "FIC-PLA-V1-SEC2-P3 (0.443)",
+            "GUI-INC-V2-SEC1-P1 (0.403)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7219,
+          "top3": [
+            "REQ-INT-V2-SEC4-P1 (0.722)",
+            "REQ-INT-V2-SEC2-P1 (0.580)",
+            "GUI-INC-V2-SEC0-P1 (0.552)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6777,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.678)",
+            "REQ-INT-V2-SEC5-P1 (0.643)",
+            "REQ-INT-V2-SEC4-P1 (0.594)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5635,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.564)",
+            "GUI-INC-V2-SEC3-P1 (0.333)",
+            "GUI-INC-V2-SEC1-P1 (0.328)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4644,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.464)",
+            "POL-FOR-V1-SEC2-P1 (0.452)",
+            "FIC-PLA-V1-SEC2-P1 (0.420)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.503)",
+            "GUI-INC-V2-SEC3-P1 (0.400)",
+            "FIC-PLA-V1-SEC2-P3 (0.364)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4405,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.441)",
+            "FIC-PLA-V1-SEC2-P4 (0.347)",
+            "GUI-INC-V2-SEC3-P1 (0.225)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.579,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.579)",
+            "GUI-INC-V2-SEC3-P1 (0.485)",
+            "FIC-PLA-V1-SEC0-P1 (0.467)"
+          ],
+          "rangos": [
+            null,
+            null
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6942,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.694)",
+            "POL-FOR-V1-SEC2-P1 (0.618)",
+            "GUI-INC-V2-SEC3-P1 (0.510)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6249,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.625)",
+            "POL-FOR-V1-SEC2-P1 (0.596)",
+            "GUI-INC-V2-SEC4-P1 (0.534)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5755,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.576)",
+            "GUI-INC-V2-SEC4-P1 (0.555)",
+            "REQ-INT-V2-SEC4-P1 (0.519)"
+          ],
+          "rangos": [
+            2
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "A-256-hibrido",
+      "descripcion": "Encabezados Markdown, límite ampliado a 256 tokens, búsqueda hibrido",
+      "estrategia": "encabezados",
+      "modo": "hibrido",
+      "opciones": {},
+      "max_seq_length": 256,
+      "total_fragmentos": 24,
+      "tokens_por_fragmento": {
+        "min": 37,
+        "max": 246,
+        "promedio": 117.1
+      },
+      "fragmentos_truncados": 0,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.6923,
+          "@3": 0.9231,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.5,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.8141,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4535,
+          "respondibles_promedio": 0.6522,
+          "sin_respuesta_max": 0.5635,
+          "sin_respuesta_promedio": 0.4929
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6646,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.665)",
+            "REQ-INT-V2-SEC4-P1 (0.581)",
+            "GUI-INC-V2-SEC2-P1 (0.489)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7859,
+          "top3": [
+            "GUI-INC-V2-SEC4-P1 (0.786)",
+            "GUI-INC-V2-SEC3-P1 (0.635)",
+            "GUI-INC-V2-SEC0-P1 (0.520)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5247,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.525)",
+            "FIC-PLA-V1-SEC1-P1 (0.468)",
+            "GUI-INC-V2-SEC2-P1 (0.404)"
+          ],
+          "rangos": [
+            4
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6487,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P4 (0.649)",
+            "FIC-PLA-V1-SEC2-P3 (0.617)",
+            "GUI-INC-V2-SEC3-P1 (0.478)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6367,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.637)",
+            "REQ-INT-V2-SEC1-P1 (0.549)",
+            "REQ-INT-V2-SEC4-P1 (0.599)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7458,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.746)",
+            "GUI-INC-V2-SEC3-P1 (0.491)",
+            "REQ-INT-V2-SEC4-P1 (0.511)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7188,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.719)",
+            "POL-FOR-V1-SEC2-P1 (0.416)",
+            "REQ-INT-V2-SEC5-P1 (0.370)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7263,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.726)",
+            "POL-FOR-V1-SEC3-P1 (0.672)",
+            "POL-FOR-V1-SEC1-P1 (0.725)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6847,
+          "top3": [
+            "POL-FOR-V1-SEC3-P1 (0.685)",
+            "POL-FOR-V1-SEC2-P1 (0.610)",
+            "POL-FOR-V1-SEC1-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6252,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.625)",
+            "GUI-INC-V2-SEC1-P1 (0.555)",
+            "GUI-INC-V2-SEC2-P1 (0.429)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4535,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P2 (0.454)",
+            "GUI-INC-V2-SEC1-P1 (0.403)",
+            "FIC-PLA-V1-SEC2-P3 (0.443)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7219,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.580)",
+            "REQ-INT-V2-SEC4-P1 (0.722)",
+            "GUI-INC-V2-SEC3-P1 (0.528)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6777,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.678)",
+            "REQ-INT-V2-SEC5-P1 (0.643)",
+            "REQ-INT-V2-SEC4-P1 (0.594)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5635,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.564)",
+            "GUI-INC-V2-SEC3-P1 (0.333)",
+            "REQ-INT-V2-SEC5-P1 (0.281)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4644,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.464)",
+            "GUI-INC-V2-SEC1-P1 (0.411)",
+            "FIC-PLA-V1-SEC2-P1 (0.420)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.400)",
+            "POL-FOR-V1-SEC2-P1 (0.503)",
+            "FIC-PLA-V1-SEC2-P3 (0.364)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4405,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.441)",
+            "FIC-PLA-V1-SEC2-P4 (0.347)",
+            "REQ-INT-V2-SEC4-P1 (0.111)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.579,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.579)",
+            "GUI-INC-V2-SEC3-P1 (0.485)",
+            "REQ-INT-V2-SEC1-P1 (0.392)"
+          ],
+          "rangos": [
+            null,
+            4
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6942,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.694)",
+            "POL-FOR-V1-SEC2-P1 (0.618)",
+            "POL-FOR-V1-SEC3-P1 (0.464)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6249,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.625)",
+            "GUI-INC-V2-SEC3-P1 (0.524)",
+            "POL-FOR-V1-SEC2-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5755,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.576)",
+            "REQ-INT-V2-SEC4-P1 (0.519)",
+            "GUI-INC-V2-SEC4-P1 (0.555)"
+          ],
+          "rangos": [
+            3
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "B150-128-denso",
+      "descripcion": "Fijo 150/40 palabras (~200/50 tokens), 128 tokens, búsqueda denso",
+      "estrategia": "fijo",
+      "modo": "denso",
+      "opciones": {
+        "tamano": 150,
+        "solape": 40
+      },
+      "max_seq_length": 128,
+      "total_fragmentos": 14,
+      "tokens_por_fragmento": {
+        "min": 147,
+        "max": 284,
+        "promedio": 225.4
+      },
+      "fragmentos_truncados": 14,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.7692,
+          "@3": 0.7692,
+          "@4": 0.8462,
+          "@5": 0.8462
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.75,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 1.0,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.8056,
+        "derogada_recuperada_con_filtro_todas@4": [
+          1,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4504,
+          "respondibles_promedio": 0.6141,
+          "sin_respuesta_max": 0.5691,
+          "sin_respuesta_promedio": 0.4577
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6245,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.625)",
+            "GUI-INC-V2-FIX-002 (0.594)",
+            "GUI-INC-V2-FIX-004 (0.578)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.586,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.586)",
+            "GUI-INC-V2-FIX-002 (0.583)",
+            "GUI-INC-V2-FIX-001 (0.537)"
+          ],
+          "rangos": [
+            9
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4964,
+          "top3": [
+            "FIC-PLA-V1-FIX-002 (0.496)",
+            "GUI-INC-V2-FIX-002 (0.480)",
+            "GUI-INC-V2-FIX-003 (0.475)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6679,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.668)",
+            "GUI-INC-V2-FIX-004 (0.610)",
+            "FIC-PLA-V1-FIX-002 (0.472)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6756,
+          "top3": [
+            "REQ-INT-V2-FIX-001 (0.676)",
+            "REQ-INT-V2-FIX-002 (0.620)",
+            "REQ-INT-V2-FIX-003 (0.608)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.646,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.646)",
+            "GUI-INC-V2-FIX-003 (0.569)",
+            "REQ-INT-V2-FIX-002 (0.529)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4628,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.463)",
+            "GUI-INC-V2-FIX-004 (0.438)",
+            "POL-FOR-V1-FIX-002 (0.420)"
+          ],
+          "rangos": [
+            9
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7155,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.716)",
+            "POL-FOR-V1-FIX-001 (0.688)",
+            "GUI-INC-V2-FIX-002 (0.641)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6694,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.669)",
+            "POL-FOR-V1-FIX-001 (0.443)",
+            "FIC-PLA-V1-FIX-002 (0.436)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5522,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.552)",
+            "REQ-INT-V2-FIX-002 (0.496)",
+            "GUI-INC-V2-FIX-002 (0.490)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4504,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.450)",
+            "GUI-INC-V2-FIX-002 (0.426)",
+            "POL-FOR-V1-FIX-002 (0.360)"
+          ],
+          "rangos": [
+            4
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7298,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.730)",
+            "GUI-INC-V2-FIX-003 (0.668)",
+            "REQ-INT-V2-FIX-002 (0.608)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6952,
+          "top3": [
+            "REQ-INT-V2-FIX-002 (0.695)",
+            "GUI-INC-V2-FIX-003 (0.673)",
+            "REQ-INT-V2-FIX-001 (0.654)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3931,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.393)",
+            "GUI-INC-V2-FIX-002 (0.328)",
+            "FIC-PLA-V1-FIX-002 (0.300)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4959,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.496)",
+            "FIC-PLA-V1-FIX-003 (0.470)",
+            "POL-FOR-V1-FIX-002 (0.437)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5691,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.569)",
+            "POL-FOR-V1-FIX-002 (0.519)",
+            "FIC-PLA-V1-FIX-003 (0.397)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3729,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.373)",
+            "GUI-INC-V2-FIX-004 (0.194)",
+            "POL-FOR-V1-FIX-001 (0.181)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.5215,
+          "top3": [
+            "FIC-PLA-V1-FIX-002 (0.521)",
+            "POL-FOR-V1-FIX-001 (0.511)",
+            "GUI-INC-V2-FIX-001 (0.501)"
+          ],
+          "rangos": [
+            7,
+            2
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6934,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.693)",
+            "POL-FOR-V1-FIX-002 (0.616)",
+            "GUI-INC-V2-FIX-003 (0.484)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.7116,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.712)",
+            "GUI-INC-V2-FIX-003 (0.588)",
+            "POL-FOR-V1-FIX-002 (0.567)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            2
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5422,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.542)",
+            "GUI-INC-V2-FIX-003 (0.509)",
+            "GUI-INC-V2-FIX-002 (0.509)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "B150-128-hibrido",
+      "descripcion": "Fijo 150/40 palabras (~200/50 tokens), 128 tokens, búsqueda hibrido",
+      "estrategia": "fijo",
+      "modo": "hibrido",
+      "opciones": {
+        "tamano": 150,
+        "solape": 40
+      },
+      "max_seq_length": 128,
+      "total_fragmentos": 14,
+      "tokens_por_fragmento": {
+        "min": 147,
+        "max": 284,
+        "promedio": 225.4
+      },
+      "fragmentos_truncados": 14,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.7692,
+          "@3": 0.9231,
+          "@4": 0.9231,
+          "@5": 1.0
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.75,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.0,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.8359,
+        "derogada_recuperada_con_filtro_todas@4": [
+          1,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4504,
+          "respondibles_promedio": 0.6141,
+          "sin_respuesta_max": 0.5691,
+          "sin_respuesta_promedio": 0.4577
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6245,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.625)",
+            "GUI-INC-V2-FIX-004 (0.578)",
+            "GUI-INC-V2-FIX-002 (0.594)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.586,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.586)",
+            "GUI-INC-V2-FIX-001 (0.537)",
+            "GUI-INC-V2-FIX-004 (0.450)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4964,
+          "top3": [
+            "FIC-PLA-V1-FIX-002 (0.496)",
+            "GUI-INC-V2-FIX-002 (0.480)",
+            "FIC-PLA-V1-FIX-001 (0.437)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6679,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.668)",
+            "GUI-INC-V2-FIX-004 (0.610)",
+            "REQ-INT-V2-FIX-003 (0.219)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6756,
+          "top3": [
+            "REQ-INT-V2-FIX-001 (0.676)",
+            "REQ-INT-V2-FIX-002 (0.620)",
+            "REQ-INT-V2-FIX-003 (0.608)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.646,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.646)",
+            "GUI-INC-V2-FIX-003 (0.569)",
+            "REQ-INT-V2-FIX-002 (0.529)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4628,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.420)",
+            "GUI-INC-V2-FIX-004 (0.438)",
+            "GUI-INC-V2-FIX-002 (0.463)"
+          ],
+          "rangos": [
+            5
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7155,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.716)",
+            "POL-FOR-V1-FIX-001 (0.688)",
+            "FIC-PLA-V1-FIX-002 (0.529)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6694,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.669)",
+            "POL-FOR-V1-FIX-001 (0.443)",
+            "GUI-INC-V2-FIX-004 (0.362)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5522,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.490)",
+            "GUI-INC-V2-FIX-003 (0.552)",
+            "FIC-PLA-V1-FIX-003 (0.484)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4504,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.450)",
+            "GUI-INC-V2-FIX-002 (0.426)",
+            "FIC-PLA-V1-FIX-002 (0.324)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7298,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.730)",
+            "REQ-INT-V2-FIX-002 (0.608)",
+            "GUI-INC-V2-FIX-003 (0.668)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6952,
+          "top3": [
+            "REQ-INT-V2-FIX-002 (0.695)",
+            "GUI-INC-V2-FIX-003 (0.673)",
+            "REQ-INT-V2-FIX-001 (0.654)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3931,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.393)",
+            "REQ-INT-V2-FIX-003 (0.261)",
+            "GUI-INC-V2-FIX-003 (0.296)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4959,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.496)",
+            "FIC-PLA-V1-FIX-003 (0.470)",
+            "FIC-PLA-V1-FIX-002 (0.394)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5691,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.569)",
+            "FIC-PLA-V1-FIX-003 (0.397)",
+            "POL-FOR-V1-FIX-002 (0.519)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3729,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.373)",
+            "FIC-PLA-V1-FIX-002 (0.146)",
+            "REQ-INT-V2-FIX-003 (0.137)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.5215,
+          "top3": [
+            "FIC-PLA-V1-FIX-002 (0.521)",
+            "POL-FOR-V1-FIX-001 (0.511)",
+            "REQ-INT-V2-FIX-002 (0.482)"
+          ],
+          "rangos": [
+            7,
+            2
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6934,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.693)",
+            "POL-FOR-V1-FIX-002 (0.616)",
+            "GUI-INC-V2-FIX-001 (0.387)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.7116,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.588)",
+            "GUI-INC-V2-FIX-002 (0.712)",
+            "GUI-INC-V2-FIX-004 (0.480)"
+          ],
+          "rangos": [
+            2
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5422,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.509)",
+            "GUI-INC-V2-FIX-004 (0.542)",
+            "GUI-INC-V2-FIX-002 (0.509)"
+          ],
+          "rangos": [
+            2
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "B150-256-denso",
+      "descripcion": "Fijo 150/40 palabras (~200/50 tokens), 256 tokens, búsqueda denso",
+      "estrategia": "fijo",
+      "modo": "denso",
+      "opciones": {
+        "tamano": 150,
+        "solape": 40
+      },
+      "max_seq_length": 256,
+      "total_fragmentos": 14,
+      "tokens_por_fragmento": {
+        "min": 147,
+        "max": 284,
+        "promedio": 225.4
+      },
+      "fragmentos_truncados": 4,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.4615,
+          "@3": 0.6923,
+          "@4": 0.7692,
+          "@5": 0.7692
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.75,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 0.5,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.6346,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.3945,
+          "respondibles_promedio": 0.5925,
+          "sin_respuesta_max": 0.5032,
+          "sin_respuesta_promedio": 0.4309
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6533,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.653)",
+            "GUI-INC-V2-FIX-003 (0.586)",
+            "REQ-INT-V2-FIX-003 (0.501)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6746,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.675)",
+            "GUI-INC-V2-FIX-003 (0.611)",
+            "GUI-INC-V2-FIX-002 (0.547)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.464,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.464)",
+            "GUI-INC-V2-FIX-002 (0.454)",
+            "GUI-INC-V2-FIX-003 (0.432)"
+          ],
+          "rangos": [
+            6
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5593,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.559)",
+            "GUI-INC-V2-FIX-004 (0.416)",
+            "POL-FOR-V1-FIX-002 (0.321)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.617,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.617)",
+            "REQ-INT-V2-FIX-002 (0.515)",
+            "GUI-INC-V2-FIX-003 (0.477)"
+          ],
+          "rangos": [
+            4
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6771,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.677)",
+            "GUI-INC-V2-FIX-003 (0.466)",
+            "GUI-INC-V2-FIX-004 (0.403)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4533,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.453)",
+            "POL-FOR-V1-FIX-002 (0.428)",
+            "REQ-INT-V2-FIX-003 (0.387)"
+          ],
+          "rangos": [
+            6
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7661,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.766)",
+            "GUI-INC-V2-FIX-004 (0.595)",
+            "GUI-INC-V2-FIX-002 (0.575)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6864,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.686)",
+            "POL-FOR-V1-FIX-001 (0.432)",
+            "GUI-INC-V2-FIX-002 (0.365)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5683,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.568)",
+            "GUI-INC-V2-FIX-003 (0.546)",
+            "GUI-INC-V2-FIX-004 (0.497)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.3945,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.395)",
+            "REQ-INT-V2-FIX-003 (0.344)",
+            "GUI-INC-V2-FIX-002 (0.329)"
+          ],
+          "rangos": [
+            6
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6676,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.668)",
+            "REQ-INT-V2-FIX-002 (0.558)",
+            "GUI-INC-V2-FIX-003 (0.508)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.641,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.641)",
+            "REQ-INT-V2-FIX-002 (0.592)",
+            "GUI-INC-V2-FIX-003 (0.583)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3785,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.379)",
+            "REQ-INT-V2-FIX-003 (0.308)",
+            "POL-FOR-V1-FIX-002 (0.302)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4728,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.473)",
+            "GUI-INC-V2-FIX-002 (0.373)",
+            "GUI-INC-V2-FIX-004 (0.345)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.503)",
+            "GUI-INC-V2-FIX-004 (0.441)",
+            "GUI-INC-V2-FIX-003 (0.310)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3691,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.369)",
+            "FIC-PLA-V1-FIX-002 (0.261)",
+            "GUI-INC-V2-FIX-003 (0.176)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.4897,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.490)",
+            "FIC-PLA-V1-FIX-003 (0.429)",
+            "POL-FOR-V1-FIX-002 (0.406)"
+          ],
+          "rangos": [
+            null,
+            3
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6208,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.621)",
+            "GUI-INC-V2-FIX-004 (0.556)",
+            "GUI-INC-V2-FIX-002 (0.456)"
+          ],
+          "rangos": [
+            3,
+            1
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5725,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.573)",
+            "GUI-INC-V2-FIX-004 (0.560)",
+            "GUI-INC-V2-FIX-003 (0.532)"
+          ],
+          "rangos": [
+            4
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5676,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.568)",
+            "REQ-INT-V2-FIX-003 (0.436)",
+            "GUI-INC-V2-FIX-003 (0.431)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "B150-256-hibrido",
+      "descripcion": "Fijo 150/40 palabras (~200/50 tokens), 256 tokens, búsqueda hibrido",
+      "estrategia": "fijo",
+      "modo": "hibrido",
+      "opciones": {
+        "tamano": 150,
+        "solape": 40
+      },
+      "max_seq_length": 256,
+      "total_fragmentos": 14,
+      "tokens_por_fragmento": {
+        "min": 147,
+        "max": 284,
+        "promedio": 225.4
+      },
+      "fragmentos_truncados": 4,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.6154,
+          "@3": 0.9231,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.5,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 0.5,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.7628,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.3945,
+          "respondibles_promedio": 0.5925,
+          "sin_respuesta_max": 0.5032,
+          "sin_respuesta_promedio": 0.4309
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6533,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.586)",
+            "GUI-INC-V2-FIX-004 (0.653)",
+            "REQ-INT-V2-FIX-003 (0.501)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6746,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.675)",
+            "GUI-INC-V2-FIX-003 (0.611)",
+            "GUI-INC-V2-FIX-001 (0.543)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.464,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.464)",
+            "FIC-PLA-V1-FIX-002 (0.390)",
+            "GUI-INC-V2-FIX-002 (0.454)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5593,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.559)",
+            "GUI-INC-V2-FIX-004 (0.416)",
+            "REQ-INT-V2-FIX-003 (0.248)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.617,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.617)",
+            "REQ-INT-V2-FIX-002 (0.515)",
+            "REQ-INT-V2-FIX-001 (0.426)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6771,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.677)",
+            "GUI-INC-V2-FIX-003 (0.466)",
+            "REQ-INT-V2-FIX-002 (0.400)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4533,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.428)",
+            "REQ-INT-V2-FIX-003 (0.387)",
+            "GUI-INC-V2-FIX-004 (0.453)"
+          ],
+          "rangos": [
+            4
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7661,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.766)",
+            "POL-FOR-V1-FIX-001 (0.560)",
+            "GUI-INC-V2-FIX-002 (0.575)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6864,
+          "top3": [
+            "POL-FOR-V1-FIX-002 (0.686)",
+            "POL-FOR-V1-FIX-001 (0.432)",
+            "GUI-INC-V2-FIX-004 (0.345)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5683,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.465)",
+            "GUI-INC-V2-FIX-003 (0.546)",
+            "REQ-INT-V2-FIX-003 (0.568)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.3945,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.329)",
+            "POL-FOR-V1-FIX-002 (0.395)",
+            "FIC-PLA-V1-FIX-002 (0.275)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6676,
+          "top3": [
+            "REQ-INT-V2-FIX-002 (0.558)",
+            "REQ-INT-V2-FIX-003 (0.668)",
+            "GUI-INC-V2-FIX-003 (0.508)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.641,
+          "top3": [
+            "REQ-INT-V2-FIX-002 (0.592)",
+            "REQ-INT-V2-FIX-003 (0.641)",
+            "GUI-INC-V2-FIX-003 (0.583)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3785,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.308)",
+            "GUI-INC-V2-FIX-004 (0.379)",
+            "REQ-INT-V2-FIX-002 (0.214)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4728,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.373)",
+            "POL-FOR-V1-FIX-002 (0.473)",
+            "FIC-PLA-V1-FIX-003 (0.344)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.441)",
+            "POL-FOR-V1-FIX-002 (0.503)",
+            "GUI-INC-V2-FIX-003 (0.310)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3691,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.369)",
+            "FIC-PLA-V1-FIX-002 (0.261)",
+            "REQ-INT-V2-FIX-003 (0.135)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.4897,
+          "top3": [
+            "FIC-PLA-V1-FIX-002 (0.404)",
+            "FIC-PLA-V1-FIX-003 (0.429)",
+            "REQ-INT-V2-FIX-002 (0.399)"
+          ],
+          "rangos": [
+            9,
+            4
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6208,
+          "top3": [
+            "GUI-INC-V2-FIX-002 (0.456)",
+            "POL-FOR-V1-FIX-002 (0.621)",
+            "GUI-INC-V2-FIX-001 (0.388)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5725,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.532)",
+            "GUI-INC-V2-FIX-004 (0.560)",
+            "POL-FOR-V1-FIX-002 (0.573)"
+          ],
+          "rangos": [
+            4
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5676,
+          "top3": [
+            "GUI-INC-V2-FIX-004 (0.568)",
+            "GUI-INC-V2-FIX-003 (0.431)",
+            "REQ-INT-V2-FIX-003 (0.436)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "B60-128-denso",
+      "descripcion": "Fijo 60/15 palabras (cabe en 128 tokens), búsqueda denso",
+      "estrategia": "fijo",
+      "modo": "denso",
+      "opciones": {
+        "tamano": 60,
+        "solape": 15
+      },
+      "max_seq_length": 128,
+      "total_fragmentos": 36,
+      "tokens_por_fragmento": {
+        "min": 44,
+        "max": 129,
+        "promedio": 102.7
+      },
+      "fragmentos_truncados": 1,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.5385,
+          "@3": 0.6923,
+          "@4": 0.6923,
+          "@5": 0.7692
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.5,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.6436,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.5357,
+          "respondibles_promedio": 0.6816,
+          "sin_respuesta_max": 0.6197,
+          "sin_respuesta_promedio": 0.5094
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7273,
+          "top3": [
+            "GUI-INC-V2-FIX-007 (0.727)",
+            "GUI-INC-V2-FIX-010 (0.718)",
+            "GUI-INC-V2-FIX-011 (0.639)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7472,
+          "top3": [
+            "GUI-INC-V2-FIX-010 (0.747)",
+            "GUI-INC-V2-FIX-007 (0.665)",
+            "GUI-INC-V2-FIX-011 (0.652)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5803,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.580)",
+            "GUI-INC-V2-FIX-005 (0.564)",
+            "FIC-PLA-V1-FIX-002 (0.525)"
+          ],
+          "rangos": [
+            null
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7426,
+          "top3": [
+            "FIC-PLA-V1-FIX-007 (0.743)",
+            "FIC-PLA-V1-FIX-008 (0.692)",
+            "FIC-PLA-V1-FIX-006 (0.689)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6421,
+          "top3": [
+            "REQ-INT-V2-FIX-007 (0.642)",
+            "REQ-INT-V2-FIX-001 (0.639)",
+            "REQ-INT-V2-FIX-006 (0.637)"
+          ],
+          "rangos": [
+            5
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7612,
+          "top3": [
+            "REQ-INT-V2-FIX-007 (0.761)",
+            "GUI-INC-V2-FIX-008 (0.670)",
+            "REQ-INT-V2-FIX-006 (0.594)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6183,
+          "top3": [
+            "REQ-INT-V2-FIX-005 (0.618)",
+            "GUI-INC-V2-FIX-010 (0.453)",
+            "GUI-INC-V2-FIX-003 (0.448)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.8131,
+          "top3": [
+            "POL-FOR-V1-FIX-003 (0.813)",
+            "POL-FOR-V1-FIX-001 (0.680)",
+            "POL-FOR-V1-FIX-005 (0.676)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7169,
+          "top3": [
+            "POL-FOR-V1-FIX-005 (0.717)",
+            "POL-FOR-V1-FIX-003 (0.651)",
+            "POL-FOR-V1-FIX-004 (0.638)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6592,
+          "top3": [
+            "GUI-INC-V2-FIX-008 (0.659)",
+            "GUI-INC-V2-FIX-003 (0.644)",
+            "REQ-INT-V2-FIX-007 (0.641)"
+          ],
+          "rangos": [
+            null
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5357,
+          "top3": [
+            "FIC-PLA-V1-FIX-008 (0.536)",
+            "FIC-PLA-V1-FIX-005 (0.505)",
+            "FIC-PLA-V1-FIX-006 (0.466)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7529,
+          "top3": [
+            "REQ-INT-V2-FIX-006 (0.753)",
+            "GUI-INC-V2-FIX-006 (0.656)",
+            "REQ-INT-V2-FIX-007 (0.633)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6987,
+          "top3": [
+            "GUI-INC-V2-FIX-008 (0.699)",
+            "REQ-INT-V2-FIX-004 (0.682)",
+            "REQ-INT-V2-FIX-007 (0.681)"
+          ],
+          "rangos": [
+            6
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4926,
+          "top3": [
+            "REQ-INT-V2-FIX-005 (0.493)",
+            "GUI-INC-V2-FIX-010 (0.362)",
+            "GUI-INC-V2-FIX-008 (0.352)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5555,
+          "top3": [
+            "FIC-PLA-V1-FIX-008 (0.555)",
+            "FIC-PLA-V1-FIX-004 (0.489)",
+            "GUI-INC-V2-FIX-003 (0.469)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.6197,
+          "top3": [
+            "GUI-INC-V2-FIX-009 (0.620)",
+            "GUI-INC-V2-FIX-008 (0.537)",
+            "POL-FOR-V1-FIX-004 (0.513)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3698,
+          "top3": [
+            "FIC-PLA-V1-FIX-006 (0.370)",
+            "FIC-PLA-V1-FIX-007 (0.353)",
+            "FIC-PLA-V1-FIX-005 (0.323)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.5921,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.592)",
+            "GUI-INC-V2-FIX-002 (0.577)",
+            "POL-FOR-V1-FIX-003 (0.567)"
+          ],
+          "rangos": [
+            6,
+            3
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.716,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.716)",
+            "GUI-INC-V2-FIX-010 (0.591)",
+            "GUI-INC-V2-FIX-007 (0.532)"
+          ],
+          "rangos": [
+            1,
+            4
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6497,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.650)",
+            "GUI-INC-V2-FIX-006 (0.615)",
+            "GUI-INC-V2-FIX-004 (0.612)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6342,
+          "top3": [
+            "GUI-INC-V2-FIX-010 (0.634)",
+            "GUI-INC-V2-FIX-007 (0.586)",
+            "GUI-INC-V2-FIX-011 (0.581)"
+          ],
+          "rangos": [
+            3
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "configuracion": "B60-128-hibrido",
+      "descripcion": "Fijo 60/15 palabras (cabe en 128 tokens), búsqueda hibrido",
+      "estrategia": "fijo",
+      "modo": "hibrido",
+      "opciones": {
+        "tamano": 60,
+        "solape": 15
+      },
+      "max_seq_length": 128,
+      "total_fragmentos": 36,
+      "tokens_por_fragmento": {
+        "min": 44,
+        "max": 129,
+        "promedio": 102.7
+      },
+      "fragmentos_truncados": 1,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.6154,
+          "@3": 0.8462,
+          "@4": 0.8462,
+          "@5": 0.8462
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.75,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "recall_cambio_version": {
+          "@1": 0.0,
+          "@3": 0.0,
+          "@4": 0.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.7137,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.5357,
+          "respondibles_promedio": 0.6816,
+          "sin_respuesta_max": 0.6197,
+          "sin_respuesta_promedio": 0.5094
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7273,
+          "top3": [
+            "GUI-INC-V2-FIX-007 (0.727)",
+            "GUI-INC-V2-FIX-010 (0.718)",
+            "GUI-INC-V2-FIX-006 (0.602)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7472,
+          "top3": [
+            "GUI-INC-V2-FIX-010 (0.747)",
+            "GUI-INC-V2-FIX-007 (0.665)",
+            "GUI-INC-V2-FIX-011 (0.652)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5803,
+          "top3": [
+            "FIC-PLA-V1-FIX-003 (0.580)",
+            "FIC-PLA-V1-FIX-002 (0.525)",
+            "GUI-INC-V2-FIX-005 (0.564)"
+          ],
+          "rangos": [
+            9
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7426,
+          "top3": [
+            "FIC-PLA-V1-FIX-007 (0.743)",
+            "FIC-PLA-V1-FIX-006 (0.689)",
+            "FIC-PLA-V1-FIX-008 (0.692)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6421,
+          "top3": [
+            "REQ-INT-V2-FIX-002 (0.598)",
+            "REQ-INT-V2-FIX-007 (0.642)",
+            "REQ-INT-V2-FIX-006 (0.637)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7612,
+          "top3": [
+            "REQ-INT-V2-FIX-007 (0.761)",
+            "GUI-INC-V2-FIX-008 (0.670)",
+            "REQ-INT-V2-FIX-006 (0.594)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6183,
+          "top3": [
+            "REQ-INT-V2-FIX-005 (0.618)",
+            "GUI-INC-V2-FIX-010 (0.453)",
+            "REQ-INT-V2-FIX-007 (0.362)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.8131,
+          "top3": [
+            "POL-FOR-V1-FIX-003 (0.813)",
+            "POL-FOR-V1-FIX-005 (0.676)",
+            "POL-FOR-V1-FIX-004 (0.645)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7169,
+          "top3": [
+            "POL-FOR-V1-FIX-005 (0.717)",
+            "POL-FOR-V1-FIX-003 (0.651)",
+            "POL-FOR-V1-FIX-004 (0.638)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6592,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.644)",
+            "GUI-INC-V2-FIX-006 (0.609)",
+            "REQ-INT-V2-FIX-007 (0.641)"
+          ],
+          "rangos": [
+            null
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5357,
+          "top3": [
+            "FIC-PLA-V1-FIX-008 (0.536)",
+            "FIC-PLA-V1-FIX-004 (0.440)",
+            "FIC-PLA-V1-FIX-005 (0.505)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7529,
+          "top3": [
+            "REQ-INT-V2-FIX-006 (0.753)",
+            "REQ-INT-V2-FIX-007 (0.633)",
+            "REQ-INT-V2-FIX-004 (0.572)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6987,
+          "top3": [
+            "REQ-INT-V2-FIX-004 (0.682)",
+            "REQ-INT-V2-FIX-005 (0.652)",
+            "GUI-INC-V2-FIX-008 (0.699)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4926,
+          "top3": [
+            "REQ-INT-V2-FIX-005 (0.493)",
+            "REQ-INT-V2-FIX-007 (0.290)",
+            "GUI-INC-V2-FIX-008 (0.352)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5555,
+          "top3": [
+            "FIC-PLA-V1-FIX-008 (0.555)",
+            "FIC-PLA-V1-FIX-004 (0.489)",
+            "GUI-INC-V2-FIX-003 (0.469)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.6197,
+          "top3": [
+            "GUI-INC-V2-FIX-009 (0.620)",
+            "GUI-INC-V2-FIX-008 (0.537)",
+            "FIC-PLA-V1-FIX-008 (0.344)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.3698,
+          "top3": [
+            "FIC-PLA-V1-FIX-006 (0.370)",
+            "FIC-PLA-V1-FIX-005 (0.323)",
+            "FIC-PLA-V1-FIX-007 (0.353)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.5921,
+          "top3": [
+            "REQ-INT-V2-FIX-003 (0.592)",
+            "POL-FOR-V1-FIX-003 (0.567)",
+            "REQ-INT-V2-FIX-004 (0.565)"
+          ],
+          "rangos": [
+            4,
+            2
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.716,
+          "top3": [
+            "GUI-INC-V2-FIX-003 (0.716)",
+            "POL-FOR-V1-FIX-004 (0.531)",
+            "GUI-INC-V2-FIX-004 (0.522)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6497,
+          "top3": [
+            "GUI-INC-V2-FIX-006 (0.615)",
+            "GUI-INC-V2-FIX-008 (0.575)",
+            "GUI-INC-V2-FIX-004 (0.612)"
+          ],
+          "rangos": [
+            5
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6342,
+          "top3": [
+            "GUI-INC-V2-FIX-007 (0.586)",
+            "GUI-INC-V2-FIX-010 (0.634)",
+            "GUI-INC-V2-FIX-009 (0.549)"
+          ],
+          "rangos": [
+            5
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            2
+          ]
+        }
+      ]
+    }
+  ]
+}

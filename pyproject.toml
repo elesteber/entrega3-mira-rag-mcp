@@ -45,6 +45,10 @@ packages = ["backend"]
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
+markers = [
+    "modelo: pruebas que cargan el modelo de embeddings",
+]
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore::DeprecationWarning",
 ]

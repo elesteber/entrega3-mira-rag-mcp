@@ -1,0 +1,347 @@
+{
+  "fecha": "2026-11-07T12:54:19",
+  "golden_set_version": "1.0",
+  "modelo": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "prefijo_bm25": "6",
+  "casos_evaluados": 21,
+  "ks": [
+    1,
+    3,
+    4,
+    5
+  ],
+  "resultados": [
+    {
+      "configuracion": "A-256-hibrido",
+      "descripcion": "Encabezados Markdown, límite ampliado a 256 tokens, búsqueda hibrido",
+      "estrategia": "encabezados",
+      "modo": "hibrido",
+      "opciones": {},
+      "max_seq_length": 256,
+      "total_fragmentos": 24,
+      "tokens_por_fragmento": {
+        "min": 37,
+        "max": 246,
+        "promedio": 117.1
+      },
+      "fragmentos_truncados": 0,
+      "metricas": {
+        "abstencion_por_umbral": {
+          "umbral": 0.35,
+          "sin_respuesta_sin_evidencia": [
+            0,
+            4
+          ],
+          "respondibles_sin_evidencia": [
+            0,
+            17
+          ]
+        },
+        "recall_con_respuesta": {
+          "@1": 0.6923,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "recall_conflicto_vigente": {
+          "@1": 0.25,
+          "@3": 0.75,
+          "@4": 0.75,
+          "@5": 0.75
+        },
+        "recall_cambio_version": {
+          "@1": 0.5,
+          "@3": 1.0,
+          "@4": 1.0,
+          "@5": 1.0
+        },
+        "mrr_con_respuesta": 0.8205,
+        "derogada_recuperada_con_filtro_todas@4": [
+          2,
+          2
+        ],
+        "similitud_top1": {
+          "respondibles_min": 0.4535,
+          "respondibles_promedio": 0.6522,
+          "sin_respuesta_max": 0.5635,
+          "sin_respuesta_promedio": 0.4929
+        }
+      },
+      "detalle": [
+        {
+          "id": "GS-01",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6646,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.665)",
+            "GUI-INC-V2-SEC4-P1 (0.604)",
+            "REQ-INT-V2-SEC4-P1 (0.581)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-02",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7859,
+          "top3": [
+            "GUI-INC-V2-SEC4-P1 (0.786)",
+            "GUI-INC-V2-SEC3-P1 (0.635)",
+            "GUI-INC-V2-SEC0-P1 (0.520)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-03",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.5247,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.525)",
+            "FIC-PLA-V1-SEC1-P1 (0.468)",
+            "FIC-PLA-V1-SEC2-P3 (0.337)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-04",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6487,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P4 (0.649)",
+            "FIC-PLA-V1-SEC2-P3 (0.617)",
+            "GUI-INC-V2-SEC3-P1 (0.478)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-05",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6367,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.637)",
+            "REQ-INT-V2-SEC1-P1 (0.549)",
+            "REQ-INT-V2-SEC4-P1 (0.599)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-06",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7458,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.746)",
+            "GUI-INC-V2-SEC3-P1 (0.491)",
+            "REQ-INT-V2-SEC4-P1 (0.511)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-07",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7188,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.719)",
+            "REQ-INT-V2-SEC5-P1 (0.370)",
+            "POL-FOR-V1-SEC2-P1 (0.416)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-08",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7263,
+          "top3": [
+            "POL-FOR-V1-SEC2-P1 (0.726)",
+            "POL-FOR-V1-SEC3-P1 (0.672)",
+            "POL-FOR-V1-SEC1-P1 (0.725)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-09",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6847,
+          "top3": [
+            "POL-FOR-V1-SEC3-P1 (0.685)",
+            "POL-FOR-V1-SEC2-P1 (0.610)",
+            "POL-FOR-V1-SEC1-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-10",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6252,
+          "top3": [
+            "REQ-INT-V2-SEC5-P1 (0.625)",
+            "GUI-INC-V2-SEC1-P1 (0.555)",
+            "GUI-INC-V2-SEC2-P1 (0.429)"
+          ],
+          "rangos": [
+            3
+          ]
+        },
+        {
+          "id": "GS-11",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.4535,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P2 (0.454)",
+            "FIC-PLA-V1-SEC2-P3 (0.443)",
+            "GUI-INC-V2-SEC1-P1 (0.403)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-12",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.7219,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.580)",
+            "REQ-INT-V2-SEC4-P1 (0.722)",
+            "GUI-INC-V2-SEC3-P1 (0.528)"
+          ],
+          "rangos": [
+            2
+          ]
+        },
+        {
+          "id": "GS-13",
+          "tipo": "con_respuesta",
+          "similitud_top1": 0.6777,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.678)",
+            "REQ-INT-V2-SEC1-P1 (0.589)",
+            "REQ-INT-V2-SEC5-P1 (0.643)"
+          ],
+          "rangos": [
+            1
+          ]
+        },
+        {
+          "id": "GS-14",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5635,
+          "top3": [
+            "REQ-INT-V2-SEC3-P1 (0.564)",
+            "GUI-INC-V2-SEC3-P1 (0.333)",
+            "REQ-INT-V2-SEC5-P1 (0.281)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-15",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4644,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.411)",
+            "FIC-PLA-V1-SEC2-P3 (0.464)",
+            "FIC-PLA-V1-SEC2-P1 (0.420)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-16",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.5032,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.400)",
+            "FIC-PLA-V1-SEC2-P3 (0.364)",
+            "POL-FOR-V1-SEC2-P1 (0.503)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-17",
+          "tipo": "sin_respuesta",
+          "similitud_top1": 0.4405,
+          "top3": [
+            "FIC-PLA-V1-SEC2-P3 (0.441)",
+            "FIC-PLA-V1-SEC2-P4 (0.347)",
+            "GUI-INC-V2-SEC3-P1 (0.225)"
+          ],
+          "rangos": []
+        },
+        {
+          "id": "GS-18",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.579,
+          "top3": [
+            "REQ-INT-V2-SEC2-P1 (0.579)",
+            "POL-FOR-V1-SEC2-P1 (0.394)",
+            "GUI-INC-V2-SEC0-P1 (0.461)"
+          ],
+          "rangos": [
+            9,
+            2
+          ]
+        },
+        {
+          "id": "GS-19",
+          "tipo": "conflicto_vigente",
+          "similitud_top1": 0.6942,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.694)",
+            "POL-FOR-V1-SEC2-P1 (0.618)",
+            "GUI-INC-V2-SEC2-P1 (0.421)"
+          ],
+          "rangos": [
+            1,
+            2
+          ]
+        },
+        {
+          "id": "GS-20",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.6249,
+          "top3": [
+            "GUI-INC-V2-SEC1-P1 (0.625)",
+            "GUI-INC-V2-SEC3-P1 (0.524)",
+            "POL-FOR-V1-SEC2-P1 (0.596)"
+          ],
+          "rangos": [
+            1
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        },
+        {
+          "id": "GS-21",
+          "tipo": "cambio_version",
+          "similitud_top1": 0.5755,
+          "top3": [
+            "GUI-INC-V2-SEC3-P1 (0.576)",
+            "REQ-INT-V2-SEC4-P1 (0.519)",
+            "GUI-INC-V2-SEC4-P1 (0.555)"
+          ],
+          "rangos": [
+            3
+          ],
+          "rangos_derogados_con_filtro_todas": [
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

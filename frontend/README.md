@@ -1,5 +1,7 @@
 # Frontend del Asistente MIRA CU-3
 
+**Requisito de entorno:** Requiere Node.js `^20.19.0` o `>=22.12.0`.
+
 Este directorio contendrá la aplicación web en español para los usuarios del equipo de implementación de DPRIME (ejecutivos y jefatura).
 
 > **Estado actual:** PREPARACIÓN DOCUMENTAL PREVIA A SPEC KIT.  
