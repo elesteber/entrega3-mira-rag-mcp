@@ -108,6 +108,20 @@ def main():
 
 # --- Pruebas automatizadas pytest para D7 ---
 
+import pytest
+from backend.data.init_db import init_database
+
+
+@pytest.fixture(autouse=True)
+def base_temporal(tmp_path, monkeypatch):
+    """Aísla las pruebas directas del cliente de cualquier base local persistente."""
+    db = tmp_path / "cliente.db"
+    init_database(db_path=db, quiet=True)
+    monkeypatch.setenv("SQLITE_DB_PATH", str(db))
+    yield
+    set_current_user_id(None)
+
+
 def test_external_client_catalog():
     tools = get_available_tools()
     assert "checklist_organizacion" in tools
