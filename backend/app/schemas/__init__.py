@@ -2,6 +2,7 @@
 
 from backend.app.schemas.session import ApiError, SwitchSessionRequest
 from backend.app.schemas.chat import (
+    ActionDraft,
     ActionProposal,
     ChatRequest,
     ChatResponse,
@@ -20,6 +21,7 @@ from backend.app.schemas.actions import (
 __all__ = [
     "ActionConfirmRequest",
     "ActionConfirmResponse",
+    "ActionDraft",
     "ActionPrepareRequest",
     "ActionPrepareResponse",
     "ActionProposal",

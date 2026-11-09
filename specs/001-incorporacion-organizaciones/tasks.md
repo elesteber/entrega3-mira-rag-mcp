@@ -226,6 +226,24 @@
 
 ---
 
+## Phase 13: Corrección de Hallazgos de Auditoría Flujo Chat → Propuesta → Confirmación (P1-01 a P3-02)
+
+**Propósito**: Resolver los 10 hallazgos (2 P1, 6 P2 y 2 P3) detectados en la auditoría independiente de Codex sobre la integración entre el chat y el modal de confirmación, reforzando la fidelidad de estado firmado, la flexibilidad de contexto organizacional legítimo, la gramática afirmativa determinista y la validación estricta de FastMCP (PR-1, PR-6, PR-7).
+
+- [X] T067 [P1-01] [Jorge Álvarez, Lester González] Comparación estricta de `estado_actual` en `ActionConfirmationModal.tsx`: Si `preparedProposal.estado_actual !== proposal.estado_actual`, rechazar preparación, invalidar token, deshabilitar confirmación y mostrar mensaje comprensible.
+- [X] T068 [P1-02] [Lester González, Jorge Álvarez] Desacoplar contexto organizacional implícito de explícito en `App.tsx`, `ChatInterface.tsx` y `orchestrator.py`: permitir que una organización expresamente solicitada en el mensaje sustituya el contexto predeterminado si el usuario está autorizado para ella (ej. U-I1 sobre ORG-07).
+- [X] T069 [P2-01] [Lester González] Implementar gramática afirmativa explícita y conservadora en `detect_task_mutation_intent` (`orchestrator.py`): rechazar preguntas, negaciones, prohibiciones, hipótesis e instrucciones encerradas entre comillas o backticks.
+- [X] T070 [P2-02] [Lester González] Inspección exhaustiva de cancelaciones y solicitudes adicionales en toda la longitud del mensaje en `orchestrator.py`: rechazar instrucciones canceladas dentro de la justificación o solicitudes de múltiples tareas.
+- [X] T071 [P2-03] [Lester González] No interceptar preguntas informativas en `orchestrator.py` (continuar a RAG/chat); soportar transiciones "de <origen> a <destino>" y validar coincidencia con el estado efectivo real.
+- [X] T072 [P2-04] [Lester González] Validación fail-closed de respuestas FastMCP en `_handle_valid_mutation_request` (`orchestrator.py`): correspondencia exacta de `org_id`, existencia y pertenencia de `tarea_id`, enum de `estado`, etapa y rol con errores sanitizados.
+- [X] T073 [P2-05] [Lester González] Separación de validación operativa y evidencia documental en `orchestrator.py`: emitir `PARCIAL` o abstenerse si la justificación normativa es requerida y `buscar_reglas` falla o no retorna citas suficientes; no declarar `COMPLETA` sin respaldo.
+- [X] T074 [P3-01] [Lester González, Jorge Álvarez] Alinear contratos OpenAPI, Pydantic y TypeScript (`api-rest.yaml`, `backend/app/schemas/chat.py`, `frontend/src/types/index.ts`): tipar `action_type: Literal["CAMBIO_ESTADO_TAREA"]` y `estado_actual`/`estado_propuesto` como `TaskState`.
+- [X] T075 [P3-02] [Jorge Álvarez] Comprobar expiración del token (`expires_at`) en `ActionConfirmationModal.tsx`: deshabilitar confirmación al expirar, limpiar token de memoria y requerir nueva preparación.
+- [X] T076 [P2-06] [Lester González, Rodrigo Guerrero] Cobertura integral de pruebas unitarias e integración (`tests/integration/test_chat_propuesta.py`, `App.test.tsx`, `ActionConfirmationModal.test.tsx`): contraejemplos P1/P2, persistencia real en `tarea_eventos_cambio` en base SQLite temporal aislada, anti-replay y concurrencia optimista.
+- [X] T077 [Polish & Verification] [Todos] Ejecutar suite de pruebas completa backend y frontend, build, linting, verificación visual de navegador y comprobación de integridad inalterada de `mira_cu3.db` y `mira_cu3_pr1_pr6.db`.
+
+---
+
 ## Dependencias y Orden de Ejecución
 
 ### Dependencias entre Fases

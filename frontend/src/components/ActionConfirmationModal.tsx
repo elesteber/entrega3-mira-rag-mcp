@@ -8,12 +8,12 @@ import {
   ArrowRight,
   Clock,
 } from 'lucide-react'
-import type { ActionProposal, ActionConfirmResponse, SimulatedUser } from '../types'
+import type { ActionDraft, ActionConfirmResponse, SimulatedUser } from '../types'
 import { prepareAction, confirmAction, ApiClientError } from '../services/api'
 
 export interface ActionConfirmationModalProps {
   isOpen: boolean
-  proposal: ActionProposal | null
+  proposal: ActionDraft | null
   onClose: () => void
   onSuccess?: (response: ActionConfirmResponse) => void
   currentUser?: SimulatedUser | null
@@ -35,6 +35,8 @@ export function ActionConfirmationModal({
 }: ActionConfirmationModalProps) {
   // Token efímero de confirmación retenido estrictamente en memoria (nunca renderizado ni logueado)
   const [internalToken, setInternalToken] = useState<string | null>(null)
+  const [tokenExpiresAt, setTokenExpiresAt] = useState<string | null>(null)
+  const [hasExpiredTimer, setHasExpiredTimer] = useState(false)
   const [isPreparing, setIsPreparing] = useState(false)
   const [isConfirming, setIsConfirming] = useState(false)
   const [preparedSummary, setPreparedSummary] = useState<string | null>(null)
@@ -42,11 +44,23 @@ export function ActionConfirmationModal({
   const [error, setError] = useState<ErrorDetails | null>(null)
   const [prevProposalKey, setPrevProposalKey] = useState<string | null>(null)
 
+  const isTokenExpired = hasExpiredTimer
+
+  const displayError =
+    error ||
+    (isTokenExpired && internalToken
+      ? {
+          message:
+            'El token de confirmación ha expirado (validez de 5 minutos). Por favor prepara la acción nuevamente.',
+          principleViolated: 'PR-6',
+        }
+      : null)
+
   const activeUserId = currentUser?.usuario_id || 'anonymous'
-  // currentProposalKey incluye tarea_id, org_id, nuevo_estado, justificacion y el usuario de la sesión
+  // currentProposalKey incluye tarea_id, org_id, estado_actual, nuevo_estado, justificacion y el usuario de la sesión
   const currentProposalKey =
     isOpen && proposal
-      ? `${proposal.tarea_id}-${proposal.org_id}-${proposal.estado_propuesto}-${proposal.justificacion}-${activeUserId}`
+      ? `${proposal.tarea_id}-${proposal.org_id}-${proposal.estado_actual}-${proposal.estado_propuesto}-${proposal.justificacion}-${activeUserId}`
       : null
 
   const sessionEpochRef = useRef(sessionEpoch)
@@ -63,6 +77,8 @@ export function ActionConfirmationModal({
       abortControllerRef.current = null
       sessionEpochRef.current = sessionEpoch
       setInternalToken(null)
+      setTokenExpiresAt(null)
+      setHasExpiredTimer(false)
       setPreparedSummary(null)
       setSuccessResult(null)
       setError(null)
@@ -70,6 +86,20 @@ export function ActionConfirmationModal({
       setIsConfirming(false)
     }
   }, [sessionEpoch])
+
+  // Timer automático para deshabilitar confirmación al expirar token efímero (Corrección E / PR-6)
+  useEffect(() => {
+    if (!tokenExpiresAt || !internalToken) {
+      return
+    }
+
+    const msRemaining = new Date(tokenExpiresAt).getTime() - Date.now()
+    const timer = setTimeout(() => {
+      setHasExpiredTimer(true)
+    }, Math.max(0, msRemaining))
+
+    return () => clearTimeout(timer)
+  }, [tokenExpiresAt, internalToken])
 
   useEffect(() => {
     return () => {
@@ -82,6 +112,8 @@ export function ActionConfirmationModal({
   if (currentProposalKey !== prevProposalKey) {
     setPrevProposalKey(currentProposalKey)
     setInternalToken(null)
+    setTokenExpiresAt(null)
+    setHasExpiredTimer(false)
     setPreparedSummary(null)
     setSuccessResult(null)
     setError(null)
@@ -97,6 +129,8 @@ export function ActionConfirmationModal({
     abortControllerRef.current?.abort()
     abortControllerRef.current = null
     setInternalToken(null)
+    setTokenExpiresAt(null)
+    setHasExpiredTimer(false)
     setPreparedSummary(null)
     setSuccessResult(null)
     setError(null)
@@ -145,8 +179,20 @@ export function ActionConfirmationModal({
         return
       }
 
-      // Validar coincidencia de la respuesta de prepareAction con la propuesta mostrada
+      // P1-01: Validar que el estado actual en la propuesta preparada coincida con el borrador revisado
       const prep = res.proposal
+      if (prep.estado_actual !== proposal.estado_actual) {
+        setInternalToken(null)
+        setPreparedSummary(null)
+        setTokenExpiresAt(null)
+        setError({
+          message: `El estado actual de la tarea cambió de '${proposal.estado_actual}' a '${prep.estado_actual}' en el sistema. Por favor revisa nuevamente el estado de la tarea antes de continuar.`,
+          principleViolated: 'PR-1',
+        })
+        return
+      }
+
+      // Validar coincidencia de la respuesta de prepareAction con la propuesta mostrada
       const matches =
         prep.tarea_id === proposal.tarea_id &&
         prep.org_id === proposal.org_id &&
@@ -156,6 +202,7 @@ export function ActionConfirmationModal({
       if (!matches) {
         setInternalToken(null)
         setPreparedSummary(null)
+        setTokenExpiresAt(null)
         setError({
           message:
             'Los datos de la propuesta preparada por el servidor no coinciden con la acción solicitada. Confirmación deshabilitada por seguridad (PR-1, PR-6).',
@@ -166,6 +213,11 @@ export function ActionConfirmationModal({
 
       // Guardar token efímero internamente sin imprimirlo en consola ni en el DOM
       setInternalToken(res.proposal.confirmation_token)
+      setTokenExpiresAt(res.proposal.expires_at)
+      const isAlreadyExpired = res.proposal.expires_at
+        ? new Date(res.proposal.expires_at).getTime() <= Date.now()
+        : false
+      setHasExpiredTimer(isAlreadyExpired)
       setPreparedSummary(
         `Acción preparada para la tarea ${res.proposal.tarea_id} (${res.proposal.org_id}). Nuevo estado: ${res.proposal.estado_propuesto}. Token de confirmación efímero emitido con vigencia de 5 minutos.`,
       )
@@ -203,6 +255,20 @@ export function ActionConfirmationModal({
       return
     }
 
+    // P3-02 / Corrección E: Comprobar expiración del token en frontend antes de emitir confirmación
+    if (isTokenExpired || (tokenExpiresAt && new Date(tokenExpiresAt).getTime() <= Date.now())) {
+      setInternalToken(null)
+      setPreparedSummary(null)
+      setTokenExpiresAt(null)
+      setHasExpiredTimer(true)
+      setError({
+        message:
+          'El token de confirmación ha expirado (validez de 5 minutos). Por favor prepara la acción nuevamente.',
+        principleViolated: 'PR-6',
+      })
+      return
+    }
+
     setError(null)
     setIsConfirming(true)
 
@@ -224,6 +290,8 @@ export function ActionConfirmationModal({
         return
       }
 
+      setInternalToken(null)
+      setTokenExpiresAt(null)
       setSuccessResult(res)
       onSuccess?.(res)
     } catch (err) {
@@ -411,8 +479,8 @@ export function ActionConfirmationModal({
               </div>
             )}
 
-            {/* Alerta de error si la llamada falla */}
-            {error && (
+            {/* Alerta de error si la llamada falla o el token expira */}
+            {displayError && (
               <div
                 role="alert"
                 className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900"
@@ -420,10 +488,10 @@ export function ActionConfirmationModal({
                 <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
                 <div className="space-y-1">
                   <p className="font-bold">Error en la operación</p>
-                  <p className="text-rose-800">{error.message}</p>
-                  {error.principleViolated && (
+                  <p className="text-rose-800">{displayError.message}</p>
+                  {displayError.principleViolated && (
                     <span className="inline-block rounded border border-rose-300 bg-rose-100 px-1.5 py-0.5 font-mono text-[10px] font-bold text-rose-800">
-                      Principio violado: {error.principleViolated}
+                      Principio violado: {displayError.principleViolated}
                     </span>
                   )}
                 </div>
@@ -461,7 +529,7 @@ export function ActionConfirmationModal({
                 <button
                   type="button"
                   onClick={() => void handleConfirm()}
-                  disabled={isConfirming}
+                  disabled={isConfirming || isTokenExpired || !internalToken}
                   className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
                 >
                   {isConfirming ? (

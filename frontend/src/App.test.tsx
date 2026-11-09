@@ -145,8 +145,6 @@ describe('App Component (T023 / T054)', () => {
         estado_actual: 'en_curso',
         estado_propuesto: 'completada',
         justificacion: 'Se verificó recepción SFTP.',
-        confirmation_token: 'secret-token-demo',
-        expires_at: '2026-11-07T12:05:00Z',
       },
     }
     vi.spyOn(api, 'sendChat').mockResolvedValue(mockProposalChatResponse)
@@ -230,8 +228,6 @@ describe('App Component (T023 / T054)', () => {
         estado_actual: 'en_curso',
         estado_propuesto: 'completada',
         justificacion: 'Acción obsoleta que no debe abrirse en la sesión nueva',
-        confirmation_token: 'stale-token',
-        expires_at: '2026-11-08T23:59:59Z',
       },
     }
 
@@ -247,5 +243,200 @@ describe('App Component (T023 / T054)', () => {
       screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
     ).not.toBeInTheDocument()
     expect(screen.getByText('Aún sin consultas')).toBeInTheDocument()
+  })
+
+  it('flujo interactivo completo: Chat emite ActionDraft -> Modal -> Preparar -> Confirmar -> Notificación', async () => {
+    const user = userEvent.setup()
+    const mockDraftResponse: ChatResponse = {
+      answer: 'Propuesta lista para revisar',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-007',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Revisión técnica de intercambio completada.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockDraftResponse)
+
+    const prepareSpy = vi.spyOn(api, 'prepareAction').mockResolvedValue({
+      proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-007',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Revisión técnica de intercambio completada.',
+        confirmation_token: 'secret-token-e2e-never-leak',
+        expires_at: '2026-11-09T12:05:00Z',
+      },
+    })
+
+    const confirmSpy = vi.spyOn(api, 'confirmAction').mockResolvedValue({
+      success: true,
+      evento_id: 101,
+      tarea_id: 'T-007',
+      org_id: 'ORG-05',
+      nuevo_estado: 'completada',
+      usuario_id: 'U-I1',
+      justificacion: 'Revisión técnica de intercambio completada.',
+      fecha_cambio: '2026-11-09T12:01:00Z',
+    })
+
+    const { container } = render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    // Enviar consulta
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    // 1. Modal se abre automáticamente con los datos del ActionDraft
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+      expect(screen.getByText('T-007')).toBeInTheDocument()
+      expect(screen.getByText('Revisión técnica de intercambio completada.')).toBeInTheDocument()
+    })
+
+    // 2. Hacer clic en "Preparar acción"
+    const prepareBtn = screen.getByRole('button', { name: /preparar acción/i })
+    await user.click(prepareBtn)
+
+    await waitFor(() => {
+      expect(prepareSpy).toHaveBeenCalledTimes(1)
+      expect(screen.getByText(/Paso 1 completado: Acción preparada/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /confirmar y ejecutar/i })).toBeInTheDocument()
+    })
+
+    // 3. Verificar que el token NO se expone en el DOM
+    expect(container.innerHTML).not.toContain('secret-token-e2e-never-leak')
+
+    // 4. Hacer clic en "Confirmar y ejecutar"
+    const confirmBtn = screen.getByRole('button', { name: /confirmar y ejecutar/i })
+    await user.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalledWith('secret-token-e2e-never-leak', expect.any(AbortSignal))
+      expect(screen.getByText('¡Acción ejecutada y confirmada con éxito!')).toBeInTheDocument()
+    })
+
+    // 5. Cerrar modal y verificar notificación superior
+    const closeBtn = screen.getByRole('button', { name: /entendido y cerrar/i })
+    await user.click(closeBtn)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Acción confirmada: Tarea T-007 actualizada a completada \(Evento #101\)\./i),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('cancelar en el modal descarta la propuesta sin mutación y permite reabrir desde el chat', async () => {
+    const user = userEvent.setup()
+    const mockDraftResponse: ChatResponse = {
+      answer: 'Propuesta generada para T-006',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Prueba de cancelación.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockDraftResponse)
+    const prepareSpy = vi.spyOn(api, 'prepareAction')
+    const confirmSpy = vi.spyOn(api, 'confirmAction')
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    // Modal se abre
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+    })
+
+    // Cancelar en el modal
+    const cancelBtn = screen.getByRole('button', { name: /cancelar/i })
+    await user.click(cancelBtn)
+
+    // Modal se cierra sin llamar a prepare ni confirm
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+      ).not.toBeInTheDocument()
+    })
+    expect(prepareSpy).not.toHaveBeenCalled()
+    expect(confirmSpy).not.toHaveBeenCalled()
+
+    // En el chat se puede presionar "Revisar propuesta" para volver a abrir el modal
+    const reviewBtn = screen.getByRole('button', { name: /revisar propuesta para la tarea t-006/i })
+    await user.click(reviewBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+      expect(screen.getByText('Prueba de cancelación.')).toBeInTheDocument()
+    })
+  })
+
+  it('cambiar de usuario mientras el modal está abierto descarta la propuesta y cierra el modal', async () => {
+    const user = userEvent.setup()
+    const mockDraftResponse: ChatResponse = {
+      answer: 'Propuesta para T-006',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Cambio de sesión descartará esto.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockDraftResponse)
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+    })
+
+    // Cambiar de usuario a U-I2
+    const select = screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })
+    await user.selectOptions(select, 'U-I2')
+
+    await waitFor(() => {
+      expect(select).toHaveValue('U-I2')
+      expect(
+        screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+      ).not.toBeInTheDocument()
+    })
   })
 })

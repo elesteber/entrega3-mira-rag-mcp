@@ -171,10 +171,27 @@ export async function mockSendChat(request: ChatRequest): Promise<ChatResponse> 
   }
 
   // MOCK Caso 5: Propuesta de cambio de T-006 (action_proposal)
-  if (
-    normalized.includes('t-006') ||
-    (normalized.includes('marcar') && normalized.includes('completada'))
-  ) {
+  // Escenario simulado para pruebas frontend del flujo de confirmación en dos pasos (PR-1, PR-6).
+  // Solo se activa ante órdenes explícitas afirmativas sobre T-006 (no ante preguntas o consultas informativas).
+  const isQuestionOrInquiry =
+    normalized.includes('?') ||
+    normalized.includes('¿') ||
+    normalized.startsWith('cuál') ||
+    normalized.startsWith('cual') ||
+    normalized.includes('estado de') ||
+    normalized.startsWith('explica')
+
+  const isAffirmativeMutationT006 =
+    !isQuestionOrInquiry &&
+    normalized.includes('t-006') &&
+    (normalized.includes('solicito') ||
+      normalized.includes('marca') ||
+      normalized.includes('marcar') ||
+      normalized.includes('cambiar') ||
+      normalized.includes('actualizar')) &&
+    (normalized.includes('completada') || normalized.includes('en_curso'))
+
+  if (isAffirmativeMutationT006) {
     // MOCK
     return {
       answer:
@@ -213,8 +230,6 @@ export async function mockSendChat(request: ChatRequest): Promise<ChatResponse> 
         estado_propuesto: 'completada',
         justificacion:
           'Se habilitó carpeta SFTP compartida y se verificó recepción de archivos según REQ-INT §4.1.',
-        confirmation_token: 'mock-confirmation-token-t006-efimero',
-        expires_at: new Date(Date.now() + 300000).toISOString(),
       },
     }
   }

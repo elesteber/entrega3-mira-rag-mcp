@@ -6,8 +6,11 @@ garantizando compatibilidad estricta con contracts/api-rest.yaml.
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
+
+TaskStateLiteral = Literal["pendiente", "en_curso", "completada"]
+ActionTypeLiteral = Literal["CAMBIO_ESTADO_TAREA"]
 
 
 class EvidenceStatusEnum(str, Enum):
@@ -43,6 +46,10 @@ class ChatRequest(BaseModel):
         default=None,
         description="Código opcional de organización en foco (ej. 'ORG-05', 'ORG-07')",
         examples=["ORG-07"],
+    )
+    organization_context_is_explicit: bool = Field(
+        default=False,
+        description="Indica si organization_context fue seleccionado explícitamente por el usuario en la UI (True) o asignado implícitamente por el sistema (False)",
     )
     conversation_history: Optional[List[HistoryMessage]] = Field(
         default=None,
@@ -114,10 +121,10 @@ class McpTrace(BaseModel):
     )
 
 
-class ActionProposal(BaseModel):
-    """Propuesta estructurada de acción con token efímero para confirmación humana (PR-1, PR-6)."""
+class ActionDraft(BaseModel):
+    """Borrador estructurado de acción informativa sin token efímero ni vencimiento (PR-1, PR-6)."""
 
-    action_type: str = Field(
+    action_type: ActionTypeLiteral = Field(
         default="CAMBIO_ESTADO_TAREA",
         description="Tipo de acción propuesta",
     )
@@ -129,17 +136,23 @@ class ActionProposal(BaseModel):
         description="Código de la organización propietaria",
         examples=["ORG-05"],
     )
-    estado_actual: str = Field(
+    estado_actual: TaskStateLiteral = Field(
         description="Estado efectivo actual de la tarea",
         examples=["en_curso"],
     )
-    estado_propuesto: str = Field(
+    estado_propuesto: TaskStateLiteral = Field(
         description="Estado propuesto tras la confirmación",
         examples=["completada"],
     )
     justificacion: str = Field(
         description="Motivo o justificación documentada del cambio propuesto",
+        examples=["Se habilitó carpeta SFTP compartida y se verificó recepción de archivos."],
     )
+
+
+class ActionProposal(ActionDraft):
+    """Propuesta estructurada de acción con token efímero para confirmación humana (PR-1, PR-6)."""
+
     confirmation_token: str = Field(
         description="Token criptográfico efímero firmado por el backend (TTL 5 min)",
     )
@@ -165,7 +178,7 @@ class ChatResponse(BaseModel):
     evidence_status: EvidenceStatusEnum = Field(
         description="Estado cualitativo de la evidencia: COMPLETA, PARCIAL, ABSTENCION, CONFLICTO_FUENTES",
     )
-    action_proposal: Optional[ActionProposal] = Field(
+    action_proposal: Optional[ActionDraft] = Field(
         default=None,
-        description="Propuesta de mutación si la consulta derivó en la preparación de un cambio de estado",
+        description="Borrador de propuesta informativa si la consulta solicitó un cambio de estado válido (sin token efímero)",
     )

@@ -49,6 +49,7 @@ describe('ChatInterface Component (T028)', () => {
       {
         message: '¿Qué tareas tiene pendientes ORG-05?',
         organization_context: undefined,
+        organization_context_is_explicit: false,
         conversation_history: [],
       },
       expect.any(AbortSignal),
@@ -159,7 +160,7 @@ describe('ChatInterface Component (T028)', () => {
 
   it('notifica onActionProposal cuando la respuesta contiene action_proposal', async () => {
     const mockProposal = {
-      action_type: 'CAMBIO_ESTADO_TAREA',
+      action_type: 'CAMBIO_ESTADO_TAREA' as const,
       tarea_id: 'T-006',
       org_id: 'ORG-05',
       estado_actual: 'en_curso' as const,

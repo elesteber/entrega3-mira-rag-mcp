@@ -30,6 +30,7 @@ export interface HistoryMessage {
 export interface ChatRequest {
   message: string
   organization_context?: string | null
+  organization_context_is_explicit?: boolean
   conversation_history?: HistoryMessage[]
 }
 
@@ -52,13 +53,18 @@ export interface McpTrace {
   error?: string | null
 }
 
-export interface ActionProposal {
-  action_type: 'CAMBIO_ESTADO_TAREA' | string
+export type ActionType = 'CAMBIO_ESTADO_TAREA'
+
+export interface ActionDraft {
+  action_type: ActionType
   tarea_id: string
   org_id: string
   estado_actual: TaskState
   estado_propuesto: TaskState
   justificacion: string
+}
+
+export interface ActionProposal extends ActionDraft {
   confirmation_token: string
   expires_at: string
 }
@@ -68,7 +74,7 @@ export interface ChatResponse {
   citations: Citation[]
   mcp_traces: McpTrace[]
   evidence_status: EvidenceStatus
-  action_proposal?: ActionProposal | null
+  action_proposal?: ActionDraft | null
 }
 
 export interface ActionPrepareRequest {

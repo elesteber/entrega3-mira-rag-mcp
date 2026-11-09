@@ -36,13 +36,21 @@ from pydantic import BaseModel, Field
 
 from backend.app.config import get_settings
 from backend.app.schemas.chat import (
+    ActionDraft,
+    ActionProposal,
     ChatRequest,
     ChatResponse,
     Citation,
     EvidenceStatusEnum,
     McpTrace as ApiMcpTrace,
 )
-from backend.app.security import SimulatedUser, check_user_organization_access
+from backend.app.security import (
+    SimulatedUser,
+    check_user_organization_access,
+    check_user_task_mutation_permission,
+    VALID_TASK_STATES,
+    TAREA_ID_PATTERN,
+)
 from backend.mcp.client import (
     MiraMcpClient,
     McpTrace as ClientMcpTrace,
@@ -160,6 +168,312 @@ class IntencionConsulta(BaseModel):
     )
 
 
+# ==============================================================================
+# Modelos y Detección Determinista de Solicitudes de Modificación (PR-1, PR-6)
+# ==============================================================================
+
+class MutationDetectionStatus(str, Enum):
+    """Estado del análisis determinista de intención de modificación de tarea."""
+
+    NO_MUTATION = "NO_MUTATION"
+    VALID = "VALID"
+    MISSING_DATA = "MISSING_DATA"
+    MULTIPLE_TASKS = "MULTIPLE_TASKS"
+    MULTIPLE_ORGS = "MULTIPLE_ORGS"
+    AMBIGUOUS = "AMBIGUOUS"
+    NEGATION = "NEGATION"
+    QUOTED_OR_INJECTION = "QUOTED_OR_INJECTION"
+
+
+class MutationDetectionResult(BaseModel):
+    """Resultado del análisis determinista de solicitud de cambio de estado."""
+
+    status: MutationDetectionStatus
+    tarea_id: Optional[str] = None
+    org_id: Optional[str] = None
+    nuevo_estado: Optional[str] = None
+    estado_origen: Optional[str] = None
+    justificacion: Optional[str] = None
+    missing_fields: List[str] = Field(default_factory=list)
+    reason: Optional[str] = None
+
+
+TAREA_REGEX = re.compile(r"\b(T-\d{3})\b", re.IGNORECASE)
+ORG_ID_REGEX = re.compile(r"\b(ORG-\d{2})\b", re.IGNORECASE)
+
+JUSTIFICACION_REGEX = re.compile(
+    r"\b(?:justificaci[oó]n|motivo|raz[oó]n|respaldo)\s*[:=]\s*(.+)$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Instrucciones citadas, entrecomilladas, en bloques de código o datos no confiables (P2-01)
+QUOTED_INSTRUCTION_REGEX = re.compile(
+    r"[`'\"«][^`'\"»]*(?:solicito|cambia|marca|actualiza|modifica|pasa|completad|tarea)[^`'\"»]*[`'\"»]|"
+    r"```|"
+    r"^\s*>|\n\s*>|"  # Citas en formato Markdown blockquote
+    r"\b(?:el\s+manual|la\s+gu[ií]a|el\s+documento|la\s+norma|la\s+pol[ií]tica)\s+(?:dice|indica|establece|se[ñn]ala|menciona)\s*:|"
+    r"^\s*(?:seg[uú]n\s+|cita:|ejemplo:)",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# Preguntas o consultas interrogativas / explicativas / hipotéticas (P2-01, P2-03, Corrección B)
+# Toda consulta interrogativa o explicativa debe retornar NO_MUTATION para fluir al RAG/chat de lectura
+QUESTION_INTERROGATIVE_REGEX = re.compile(
+    r"[?¿]|"
+    r"^\s*(?:explica|explicar|explique|expl[ií]came|describa|describir|indica\s+los|indicar\s+los|detalla|detallar|cu[aá]l|cu[aá]les|c[oó]mo|qu[eé]|cu[aá]ndo|por\s+qu[eé]|para\s+qu[eé]|d[oó]nde)\b|"
+    r"\b(?:"
+    r"qu[eé]\s+(?:es|son|requisitos|pasa|ocurre|pasar[ií]a|se\s+necesita|falta|hay|estado)|"
+    r"c[oó]mo\s+(?:puedo|se\s+puede|hacer\s+para)|"
+    r"cu[aá]l\s+(?:es|ser[ií]a)|cu[aá]les\s+(?:son|ser[ií]an)|"
+    r"cu[aá]ndo\s+(?:se\s+puede|puedo)|por\s+qu[eé]|para\s+qu[eé]|d[oó]nde|"
+    r"se\s+puede\s+(?:cambiar|marcar|actualizar)|es\s+posible\s+(?:cambiar|marcar|actualizar)|"
+    r"podr[ií]amos|si\s+(?:cambiamos|se\s+cambia|cambio|marcara|cambiara)|"
+    r"explica\s+(?:los\s+)?requisitos|cu[aá]les\s+requisitos|qu[eé]\s+requisitos|"
+    r"estado\s+de\s+T-\d{3}|estado\s+de\s+la\s+tarea"
+    r")\b",
+    re.IGNORECASE,
+)
+
+# Negaciones, prohibiciones y cancelaciones operativas en cualquier parte del mensaje o justificación (P2-01, P2-02)
+NEGATION_CANCEL_REGEX = re.compile(
+    r"\b(?:"
+    r"no\s+(?:hay\s+que|se\s+debe|debes|debe|debemos|es\s+necesario|corresponde|procede|cambiar|marcar|actualizar|modificar|pasar|ejecutar|hacer|aplicar|realizar|autorizar|solicito|deseo|quiero)|"
+    r"prohibido\s+(?:cambiar|marcar|actualizar|modificar)|"
+    r"evitar\s+(?:cambiar|marcar|actualizar|modificar)|"
+    r"abstenerse\s+(?:de\s+)?(?:cambiar|marcar|actualizar)|"
+    r"no\s+se\s+debe\s+(?:cambiar|marcar|actualizar)|"
+    r"sin\s+(?:cambiar|marcar|actualizar)|"
+    r"(?:nunca|jam[aá]s)\s+(?:cambiar|marcar|actualizar|modificar|pasar|ejecutar)|"
+    r"nunca\b|jam[aá]s\b|"
+    r"no\s+ejecutar|cancelo\s+(?:la\s+)?solicitud|cancelar\s+(?:la\s+)?solicitud|cancelo\b|cancelar\b|"
+    r"retiro\s+(?:la\s+)?solicitud|retirar\s+(?:la\s+)?solicitud|retiro\b|retirar\b|"
+    r"desisto\s+(?:de\s+)?(?:la\s+)?solicitud|desistir\b|descartar\b|anular\b|abortar\b|detener\b"
+    r")\b",
+    re.IGNORECASE,
+)
+
+# Gramática afirmativa explícita y anclada para comandos de mutación (P2-01, Corrección A)
+ANCHORED_MUTATION_REGEX = re.compile(
+    r"^(?:hola\s*,?\s*|estimad[oa]s?\s*,?\s*|asistente\s*,?\s*)?"
+    r"(?:por\s+favor\s*,?\s*)?"
+    r"(?:"
+    r"solicito\s+(?:cambiar|marcar|actualizar|modificar|pasar)|"
+    r"deseo\s+(?:cambiar|marcar|actualizar|modificar|pasar)|"
+    r"requiero\s+(?:cambiar|marcar|actualizar|modificar|pasar)|"
+    r"marca\s+(?:como\s+)?|"
+    r"cambia\s+|(?:actualiza|modifica|pasa)\s+|"
+    r"marcar\s+(?:como\s+)?|"
+    r"cambiar\s+|(?:actualizar|modificar|pasar)\s+"
+    r")\b",
+    re.IGNORECASE,
+)
+
+# Transición explícita de origen a destino (P2-03)
+TRANSITION_DE_A_REGEX = re.compile(
+    r"\bde\s+(pendiente|en[_\s]curso|completada)\s+a\s+(pendiente|en[_\s]curso|completada)\b",
+    re.IGNORECASE,
+)
+
+# Estado destino individual
+TARGET_STATE_REGEX = re.compile(
+    r"\b(?:a|como|hacia|al\s+estado|en\s+estado)\s+(pendiente|en[_\s]curso|completada|completado|completar)\b",
+    re.IGNORECASE,
+)
+STATE_LOOKUP_REGEX = re.compile(
+    r"\b(?:a|como|hacia|al\s+estado|en\s+estado)?\s*\b(pendiente|en[_\s]curso|completada|completado|completar)\b",
+    re.IGNORECASE,
+)
+
+
+def detect_task_mutation_intent(
+    message: str,
+    org_context: Optional[str] = None,
+    org_context_is_explicit: bool = False,
+) -> MutationDetectionResult:
+    """Analiza de forma determinista, conservadora y segura si el mensaje es una solicitud de mutación (PR-1, PR-6).
+
+    Aplica gramática anclada, aislamiento de consultas informativas (Corrección B) y control estricto de ambigüedad.
+    No depende de llamadas a Gemini ni interpreta documentos RAG como directivas operativas.
+    """
+    msg = message.strip()
+    if not msg:
+        return MutationDetectionResult(status=MutationDetectionStatus.NO_MUTATION)
+
+    # 1. Consultas interrogativas, explicativas o hipotéticas (Corrección B: NO_MUTATION antes de contar tareas)
+    if QUESTION_INTERROGATIVE_REGEX.search(msg):
+        return MutationDetectionResult(status=MutationDetectionStatus.NO_MUTATION)
+
+    # 2. Neutralización de instrucciones citadas, entrecomilladas, en bloques de código o citas (P2-01, Corrección A)
+    if QUOTED_INSTRUCTION_REGEX.search(msg) or re.search(r"\b(?:observaci[oó]n|nota|comentario|cita|texto)\b.*?['\"«`]", msg, re.IGNORECASE):
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.QUOTED_OR_INJECTION,
+            reason="Instrucción dentro de observación, texto citado o bloque de código (dato no confiable).",
+        )
+    if re.search(r"\btodas\s+las\s+tareas\b", msg, re.IGNORECASE):
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.QUOTED_OR_INJECTION,
+            reason="Instrucción masiva no atómica.",
+        )
+
+    # 3. Negación o prohibición detectada en cualquier parte del mensaje (P2-01, P2-02, Corrección A)
+    if NEGATION_CANCEL_REGEX.search(msg):
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.NEGATION,
+            reason="Solicitud explícita de negación, prohibición o cancelación detectada.",
+        )
+
+    # 4. Aislamiento de justificación y comando operativo
+    just_match = JUSTIFICACION_REGEX.search(msg)
+    if just_match:
+        justificacion = just_match.group(1).strip()
+        command_part = msg[: just_match.start()].strip()
+    else:
+        justificacion = None
+        command_part = msg
+
+    # Validar que la justificación no contenga instrucciones de retiro o cancelación (Corrección A)
+    if justificacion and re.search(r"\b(?:retiro|retirar|desisto|desistir|cancelo|cancelar|no\s+ejecutar|descartar|anular)\b", justificacion, re.IGNORECASE):
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.NEGATION,
+            reason="Retiro o cancelación de la solicitud detectada en la justificación.",
+        )
+
+    # 5. Gramática afirmativa anclada (Corrección A: el comando debe comenzar con orden directa afirmativa)
+    if not ANCHORED_MUTATION_REGEX.search(command_part):
+        return MutationDetectionResult(status=MutationDetectionStatus.NO_MUTATION)
+
+    # 6. Detección de múltiples tareas o solicitudes compuestas en comandos operativos (P2-02)
+    all_tasks = list(dict.fromkeys([t.upper() for t in TAREA_REGEX.findall(msg)]))
+    if len(all_tasks) > 1:
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.MULTIPLE_TASKS,
+            reason="Múltiples tareas detectadas en la solicitud operativa.",
+        )
+    if re.search(r"\b(?:adem[aá]s|tambi[eé]n|luego|posteriormente)\s+(?:cambiar|marcar|actualizar|modificar|pasar)\b", msg, re.IGNORECASE):
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.MULTIPLE_TASKS,
+            reason="Múltiples operaciones o solicitudes adicionales detectadas.",
+        )
+
+    tarea_id = all_tasks[0] if all_tasks else None
+
+    # 7. Extracción y validación de organizaciones (P1-02)
+    orgs_in_msg = list(dict.fromkeys([o.upper() for o in ORG_ID_REGEX.findall(msg)]))
+    if len(orgs_in_msg) > 1:
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.MULTIPLE_ORGS,
+            reason="Múltiples organizaciones detectadas en el mensaje.",
+        )
+
+    if len(orgs_in_msg) == 1:
+        msg_org = orgs_in_msg[0]
+        if org_context and org_context_is_explicit and org_context.strip().upper() != msg_org:
+            return MutationDetectionResult(
+                status=MutationDetectionStatus.AMBIGUOUS,
+                reason=f"Conflicto de contexto: la organización seleccionada en interfaz ({org_context.strip().upper()}) no coincide con la solicitada en el mensaje ({msg_org}).",
+            )
+        target_org = msg_org
+    else:
+        if org_context and re.match(r"^ORG-\d{2}$", org_context.strip().upper()):
+            target_org = org_context.strip().upper()
+        else:
+            target_org = None
+
+    # 8. Control estricto de transiciones, disyunciones y unicidad de destino (Corrección A)
+    # 8.a) Detección de disyunciones entre estados ("a X o a Y")
+    if re.search(
+        r"\b(?:a|hacia|como)?\s*(?:en[_\s]curso|pendiente|completada|completado)\s+(?:o|u)\s+(?:a\s+)?(?:en[_\s]curso|pendiente|completada|completado)\b",
+        command_part,
+        re.IGNORECASE,
+    ):
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.AMBIGUOUS,
+            reason="Múltiples estados destino alternativos o disyuntivos detectados.",
+        )
+
+    # 8.b) Detección de transiciones encadenadas ("de X a Y y de Y a Z")
+    trans_matches = list(TRANSITION_DE_A_REGEX.finditer(command_part))
+    if len(trans_matches) > 1:
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.AMBIGUOUS,
+            reason="Múltiples transiciones de estado encadenadas detectadas.",
+        )
+
+    estado_origen: Optional[str] = None
+    nuevo_estado: Optional[str] = None
+
+    if len(trans_matches) == 1:
+        estado_origen = trans_matches[0].group(1).lower().replace(" ", "_")
+        nuevo_estado = trans_matches[0].group(2).lower().replace(" ", "_")
+        if estado_origen == nuevo_estado:
+            return MutationDetectionResult(
+                status=MutationDetectionStatus.AMBIGUOUS,
+                reason="El estado de origen y el estado destino no pueden ser idénticos.",
+            )
+        # Comprobar que no existan otros estados mencionados fuera de la transición
+        remaining_cmd = command_part[: trans_matches[0].start()] + " " + command_part[trans_matches[0].end() :]
+        if re.search(r"\b(?:en[_\s]curso|pendiente|completada|completado)\b", remaining_cmd, re.IGNORECASE):
+            return MutationDetectionResult(
+                status=MutationDetectionStatus.AMBIGUOUS,
+                reason="Múltiples estados o transiciones contradictorias detectadas en el comando.",
+            )
+    else:
+        target_match = TARGET_STATE_REGEX.search(command_part)
+        if target_match:
+            raw_s = target_match.group(1).lower().replace(" ", "_")
+            if raw_s in ("completado", "completar"):
+                nuevo_estado = "completada"
+            else:
+                nuevo_estado = raw_s
+        else:
+            raw_states = STATE_LOOKUP_REGEX.findall(command_part)
+            normalized_states = []
+            for s in raw_states:
+                s_clean = s.strip().lower().replace(" ", "_")
+                if s_clean in ("en_curso", "en curso"):
+                    normalized_states.append("en_curso")
+                elif s_clean in ("completada", "completado", "completar"):
+                    normalized_states.append("completada")
+                elif s_clean == "pendiente":
+                    normalized_states.append("pendiente")
+            unique_states = list(dict.fromkeys(normalized_states))
+            if len(unique_states) > 1:
+                return MutationDetectionResult(
+                    status=MutationDetectionStatus.AMBIGUOUS,
+                    reason="Múltiples estados destino contradictorios detectados.",
+                )
+            nuevo_estado = unique_states[0] if unique_states else None
+
+    # 9. Validación de campos obligatorios faltantes
+    missing = []
+    if not tarea_id:
+        missing.append("tarea_id")
+    if not target_org:
+        missing.append("org_id")
+    if not nuevo_estado:
+        missing.append("nuevo_estado")
+    if not justificacion:
+        missing.append("justificacion")
+
+    if missing:
+        return MutationDetectionResult(
+            status=MutationDetectionStatus.MISSING_DATA,
+            tarea_id=tarea_id,
+            org_id=target_org,
+            nuevo_estado=nuevo_estado,
+            estado_origen=estado_origen,
+            justificacion=justificacion,
+            missing_fields=missing,
+        )
+
+    return MutationDetectionResult(
+        status=MutationDetectionStatus.VALID,
+        tarea_id=tarea_id,
+        org_id=target_org,
+        nuevo_estado=nuevo_estado,
+        estado_origen=estado_origen,
+        justificacion=justificacion,
+    )
 
 
 # ==============================================================================
@@ -226,6 +540,47 @@ def to_api_mcp_trace(client_trace: ClientMcpTrace) -> ApiMcpTrace:
 # Clase del Orquestador Conversacional
 # ==============================================================================
 
+def _is_e5_normative_evidence_valid(citation: Citation) -> bool:
+    """Valida deterministamente si una cita RAG constituye respaldo normativo suficiente para E5 (P2-05, Corrección C).
+
+    Criterios obligatorios:
+    1. Documento formalmente vigente (rechazo taxativo de derogados, no vigentes o sin estado).
+    2. Documento canónico aplicable: GUI-INC v2 (Guía Integral de Incorporación de Clientes).
+    3. Sección normativa pertinente a salida a producción o jefatura: §3 o §4.
+    4. Correspondencia temática verificable con la regla de E5:
+       El texto debe contener términos explícitos de producción o jefatura (ej. 'producción', 'salida a producción',
+       'jefe de implementación', 'jefatura', 'autorización formal', 'criterios normativos').
+       Se rechazan citas puramente técnicas no pertinentes (ej. transferencias de archivos cada 30 min, SFTP, etc.).
+    """
+    if not citation.status or citation.status.strip().lower() != "vigente":
+        return False
+
+    doc_norm = citation.doc_code.upper().replace("_", "-")
+    if "GUI-INC" not in doc_norm:
+        return False
+
+    ver_norm = citation.version.lower()
+    if not ("v2" in ver_norm or "2" in ver_norm):
+        return False
+
+    sec = citation.section
+    if not any(s in sec for s in ["§3", "§4", "3", "4"]):
+        return False
+
+    excerpt = citation.excerpt.lower()
+    if not excerpt:
+        return False
+
+    has_e5_theme = bool(
+        re.search(
+            r"\b(?:producci[oó]n|salida\s+a\s+producci[oó]n|etapa\s+e5|jefe\s+de\s+implementaci[oó]n|jefatura|autorizaci[oó]n\s+formal|criterios\s+normativos)\b",
+            excerpt,
+            re.IGNORECASE,
+        )
+    )
+    return has_e5_theme
+
+
 class MiraOrchestrator:
     """Orquestador conversacional que enlaza FastAPI, FastMCP y Google Gemini Flash."""
 
@@ -259,13 +614,13 @@ class MiraOrchestrator:
         return client
 
     def _extract_organization(self, request: ChatRequest) -> Optional[str]:
-        """Detecta el identificador de organización del contexto explícito o del mensaje."""
-        if request.organization_context and request.organization_context.strip():
-            return request.organization_context.strip().upper()
+        """Detecta el identificador de organización del mensaje o del contexto."""
         if request.message:
             match = ORG_ID_REGEX.search(request.message)
             if match:
                 return match.group(1).upper()
+        if request.organization_context and request.organization_context.strip():
+            return request.organization_context.strip().upper()
         return None
 
     async def process_chat(
@@ -298,13 +653,16 @@ class MiraOrchestrator:
                 await active_mcp.connect()
             active_mcp.clear_traces()
 
-            # Detección de todas las organizaciones involucradas para control estricto (PR-7)
-            all_referenced_orgs: Set[str] = set()
-            if request.organization_context and request.organization_context.strip():
-                all_referenced_orgs.add(request.organization_context.strip().upper())
-            if request.message:
-                for match in ORG_ID_REGEX.findall(request.message):
-                    all_referenced_orgs.add(match.strip().upper())
+            # Detección de todas las organizaciones involucradas para control estricto (PR-7 y P1-02)
+            msg_orgs = set([m.strip().upper() for m in ORG_ID_REGEX.findall(request.message)]) if request.message else set()
+            if msg_orgs and not request.organization_context_is_explicit:
+                # P1-02: Organización explícita en mensaje sustituye contexto implícito predeterminado
+                all_referenced_orgs = msg_orgs
+            else:
+                all_referenced_orgs = set()
+                if request.organization_context and request.organization_context.strip():
+                    all_referenced_orgs.add(request.organization_context.strip().upper())
+                all_referenced_orgs.update(msg_orgs)
 
             target_org = self._extract_organization(request)
 
@@ -339,7 +697,91 @@ class MiraOrchestrator:
                         action_proposal=None,
                     )
 
-            # 2. Ensamblado de Contexto mediante Herramientas MCP de Lectura
+            # 2. Detección determinista y conservadora de solicitudes de cambio de estado (PR-1, PR-6)
+            mutation_detection = detect_task_mutation_intent(
+                message=request.message,
+                org_context=request.organization_context,
+                org_context_is_explicit=getattr(request, "organization_context_is_explicit", False),
+            )
+
+            if mutation_detection.status == MutationDetectionStatus.MISSING_DATA:
+                missing_descriptions = []
+                for f in mutation_detection.missing_fields:
+                    if f == "tarea_id":
+                        missing_descriptions.append("identificador de la tarea (ej. T-007)")
+                    elif f == "org_id":
+                        missing_descriptions.append("código de la organización (ej. ORG-05)")
+                    elif f == "nuevo_estado":
+                        missing_descriptions.append("nuevo estado destino (pendiente, en_curso o completada)")
+                    elif f == "justificacion":
+                        missing_descriptions.append("justificación explícita de la acción")
+
+                missing_str = ", ".join(missing_descriptions)
+                answer = (
+                    f"Para preparar una propuesta de cambio de estado conforme a los principios PR-1 y PR-6, "
+                    f"es obligatorio proporcionar los siguientes datos faltantes: {missing_str}.\n\n"
+                    f"Ejemplo de solicitud válida: 'Solicito cambiar T-007 de ORG-05 a en_curso. "
+                    f"Justificación: Iniciamos la revisión técnica.'"
+                )
+                mcp_traces = [to_api_mcp_trace(t) for t in active_mcp.get_traces()]
+                return ChatResponse(
+                    answer=answer,
+                    citations=[],
+                    mcp_traces=mcp_traces,
+                    evidence_status=EvidenceStatusEnum.PARCIAL,
+                    action_proposal=None,
+                )
+
+            elif mutation_detection.status == MutationDetectionStatus.MULTIPLE_TASKS:
+                answer = (
+                    "Solo se puede procesar una tarea a la vez en una propuesta de cambio de estado "
+                    "conforme a los principios PR-1 y PR-6. Por favor, solicita la modificación de una única tarea por mensaje."
+                )
+                mcp_traces = [to_api_mcp_trace(t) for t in active_mcp.get_traces()]
+                return ChatResponse(
+                    answer=answer,
+                    citations=[],
+                    mcp_traces=mcp_traces,
+                    evidence_status=EvidenceStatusEnum.ABSTENCION,
+                    action_proposal=None,
+                )
+
+            elif mutation_detection.status == MutationDetectionStatus.MULTIPLE_ORGS:
+                answer = (
+                    "Solo se puede solicitar cambios para una única organización a la vez conforme a las "
+                    "reglas de control de acceso y aislamiento organizacional (PR-7)."
+                )
+                mcp_traces = [to_api_mcp_trace(t) for t in active_mcp.get_traces()]
+                return ChatResponse(
+                    answer=answer,
+                    citations=[],
+                    mcp_traces=mcp_traces,
+                    evidence_status=EvidenceStatusEnum.ABSTENCION,
+                    action_proposal=None,
+                )
+
+            elif mutation_detection.status == MutationDetectionStatus.AMBIGUOUS:
+                answer = (
+                    f"La solicitud de cambio de estado es ambigua ({mutation_detection.reason or 'datos contradictorios'}). "
+                    f"Por favor, especifica claramente una única tarea, organización, estado destino y justificación."
+                )
+                mcp_traces = [to_api_mcp_trace(t) for t in active_mcp.get_traces()]
+                return ChatResponse(
+                    answer=answer,
+                    citations=[],
+                    mcp_traces=mcp_traces,
+                    evidence_status=EvidenceStatusEnum.ABSTENCION,
+                    action_proposal=None,
+                )
+
+            elif mutation_detection.status == MutationDetectionStatus.VALID:
+                return await self._handle_valid_mutation_request(
+                    user=user,
+                    detection=mutation_detection,
+                    active_mcp=active_mcp,
+                )
+
+            # 3. Ensamblado de Contexto mediante Herramientas MCP de Lectura
             citations: List[Citation] = []
             retrieved_data: Dict[str, Any] = {}
             mcp_errors: List[str] = []
@@ -546,6 +988,318 @@ class MiraOrchestrator:
                     await active_mcp.close()
                 except Exception as e:
                     logger.warning(f"Error al cerrar cliente MCP efímero: {sanitize_mcp_error(str(e))}")
+
+    async def _handle_valid_mutation_request(
+        self,
+        user: SimulatedUser,
+        detection: MutationDetectionResult,
+        active_mcp: MiraMcpClient,
+    ) -> ChatResponse:
+        """Procesa una solicitud de mutación válida verificando precondiciones con herramientas de lectura MCP (PR-1, PR-6, PR-7).
+
+        Genera exclusivamente un ActionDraft (propuesta informativa sin confirmation_token ni TTL).
+        Nunca ejecuta mutaciones de estado ni llama a marcar_tarea desde este flujo conversacional.
+        """
+        tarea_id = str(detection.tarea_id).strip().upper()
+        org_id = str(detection.org_id).strip().upper()
+        nuevo_estado = str(detection.nuevo_estado).strip().lower()
+        justificacion = str(detection.justificacion).strip()
+
+        # 1. Control de mínimo privilegio para rol comercial (PR-7)
+        if user.rol == "comercial":
+            answer = (
+                f"El usuario {user.usuario_id} ({user.nombre}) con rol comercial "
+                f"no posee facultades operativas para solicitar modificaciones de tareas (PR-7)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # 2. Control de Acceso por Organización (PR-7)
+        if not check_user_organization_access(user, org_id):
+            answer = (
+                f"El usuario {user.usuario_id} ({user.nombre}) con rol '{user.rol}' "
+                f"no tiene permisos de acceso sobre la organización {org_id} (PR-7)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # 3. Consulta de Checklist vía MCP (Herramienta de Lectura)
+        try:
+            chk_res = await active_mcp.call_tool_for_llm(
+                "checklist_organizacion",
+                {"org_id": org_id},
+                user_context=user,
+            )
+        except Exception as e:
+            logger.error(f"Error al consultar checklist_organizacion en propuesta: {e}")
+            answer = (
+                f"No fue posible consultar el estado actual de las tareas para la organización {org_id} mediante FastMCP. "
+                f"Se suspende la preparación de la propuesta por evidencia insuficiente conforme a PR-3 y PR-5."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        if not chk_res.success or not isinstance(chk_res.data, dict):
+            answer = (
+                f"No se pudo recuperar el checklist de la organización {org_id} desde FastMCP "
+                f"({chk_res.error or 'error desconocido'}). Abstención conforme a PR-3 y PR-5."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # 4. Validación estricta y fail-closed de la respuesta de FastMCP (P2-04)
+        ret_org = chk_res.data.get("org_id")
+        if not ret_org or str(ret_org).strip().upper() != org_id:
+            answer = (
+                f"Discrepancia en la respuesta del servicio FastMCP: la organización devuelta ({ret_org}) "
+                f"no coincide con la consultada ({org_id}) (PR-7)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        raw_tareas = chk_res.data.get("tareas")
+        if not isinstance(raw_tareas, list):
+            answer = (
+                f"Respuesta inválida del servicio FastMCP para la organización {org_id}: "
+                f"la lista de tareas no tiene el formato esperado. Abstención conforme a PR-3 y PR-5."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        found_task: Optional[Dict[str, Any]] = None
+        for t in raw_tareas:
+            if isinstance(t, dict):
+                tid = str(t.get("tarea_id", "")).strip().upper()
+                if tid == tarea_id:
+                    # Validar correspondencia organizacional de la tarea
+                    task_org = str(t.get("org_id", "")).strip().upper()
+                    if task_org and task_org != org_id:
+                        answer = (
+                            f"Inconsistencia en los datos de FastMCP: la tarea {tarea_id} pertenece "
+                            f"a la organización {task_org}, no a {org_id}. Abstención conforme a PR-7."
+                        )
+                        return ChatResponse(
+                            answer=answer,
+                            citations=[],
+                            mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                            evidence_status=EvidenceStatusEnum.ABSTENCION,
+                            action_proposal=None,
+                        )
+
+                    # Validar estado conocido
+                    task_state = str(t.get("estado", "")).strip().lower()
+                    if task_state not in ("pendiente", "en_curso", "completada"):
+                        answer = (
+                            f"Inconsistencia en los datos de FastMCP: la tarea {tarea_id} registra un estado desconocido "
+                            f"('{t.get('estado')}'). Abstención por datos no confiables (PR-3, PR-5)."
+                        )
+                        return ChatResponse(
+                            answer=answer,
+                            citations=[],
+                            mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                            evidence_status=EvidenceStatusEnum.ABSTENCION,
+                            action_proposal=None,
+                        )
+
+                    # Validar etapa
+                    task_etapa = str(t.get("etapa", "")).strip().upper()
+                    if task_etapa not in ("E0", "E1", "E2", "E3", "E4", "E5"):
+                        answer = (
+                            f"Inconsistencia en los datos de FastMCP: la etapa de la tarea {tarea_id} es inválida "
+                            f"('{t.get('etapa')}'). Abstención conforme a PR-3 y PR-5."
+                        )
+                        return ChatResponse(
+                            answer=answer,
+                            citations=[],
+                            mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                            evidence_status=EvidenceStatusEnum.ABSTENCION,
+                            action_proposal=None,
+                        )
+
+                    found_task = t
+                    break
+
+        if not found_task:
+            answer = (
+                f"La tarea {tarea_id} no fue encontrada en los registros de la organización {org_id}. "
+                f"No es posible generar una propuesta de cambio sobre una tarea inexistente o no asignada."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # 5. Comprobación de permisos por etapa y rol (Restricción E5)
+        etapa = str(found_task.get("etapa", "")).strip().upper()
+        is_authorized, err_msg = check_user_task_mutation_permission(user, org_id, etapa)
+        if not is_authorized:
+            answer = (
+                f"Acceso denegado para solicitar el cambio de estado en la tarea {tarea_id} ({org_id}): "
+                f"{err_msg or 'Permisos insuficientes'} (PR-7)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # 6. Comprobación de estado de origen declarado (P2-03)
+        estado_actual = str(found_task.get("estado", "")).strip().lower()
+        if detection.estado_origen and detection.estado_origen != estado_actual:
+            answer = (
+                f"El estado de origen declarado en la solicitud ('{detection.estado_origen}') "
+                f"no coincide con el estado efectivo actual de la tarea en el sistema ('{estado_actual}'). "
+                f"Transición rechazada por inconsistencia de estado (PR-1, PR-3)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # 7. Comprobación de transición redundante
+        if estado_actual == nuevo_estado:
+            answer = (
+                f"La tarea {tarea_id} de la organización {org_id} ya se encuentra "
+                f"en el estado solicitado ('{estado_actual}'). No se genera propuesta por ser una transición redundante (PR-1)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.COMPLETA,
+                action_proposal=None,
+            )
+
+        # 8. Citas documentales de respaldo (buscar_reglas) y validación de evidencia (P2-05, Corrección C)
+        citations: List[Citation] = []
+        rag_success = False
+        try:
+            query_rag = (
+                "criterios salida a produccion autorizacion jefatura etapa E5 GUI-INC v2"
+                if etapa == "E5"
+                else f"requisitos de integracion tareas etapa {etapa} GUI-INC"
+            )
+            reglas_res = await active_mcp.call_tool_for_llm(
+                "buscar_reglas",
+                {"query": query_rag, "top_k": 3},
+                user_context=user,
+            )
+            if reglas_res.success and isinstance(reglas_res.data, dict):
+                rag_success = True
+                for r in reglas_res.data.get("results", []):
+                    if (
+                        isinstance(r, dict)
+                        and r.get("chunk_id")
+                        and r.get("doc_code")
+                        and r.get("section")
+                        and r.get("version")
+                        and (r.get("text") or r.get("excerpt"))
+                    ):
+                        cit = Citation(
+                            chunk_id=str(r.get("chunk_id")).strip(),
+                            doc_code=str(r.get("doc_code")).strip(),
+                            doc_title=str(r.get("doc_title", "Documentación Oficial MIRA")).strip(),
+                            section=str(r.get("section")).strip(),
+                            version=str(r.get("version")).strip(),
+                            status=str(r.get("status", "vigente")).strip(),
+                            excerpt=str(r.get("text") or r.get("excerpt", "")).strip(),
+                        )
+                        # Corrección C: Para etapa E5, comprobar correspondencia temática y vigencia documental
+                        if etapa == "E5":
+                            if _is_e5_normative_evidence_valid(cit):
+                                citations.append(cit)
+                        else:
+                            if cit.status.lower() == "vigente":
+                                citations.append(cit)
+        except Exception as e:
+            logger.warning(f"Error al consultar buscar_reglas para propuesta: {e}")
+
+        # P2-05 / Corrección C: Si la tarea es de etapa E5 (salida a producción) y no hay evidencia normativa verificable y pertinente:
+        if etapa == "E5" and (not rag_success or not citations):
+            answer = (
+                f"No es posible preparar una propuesta de cambio para la tarea de salida a producción {tarea_id} ({org_id}) "
+                f"debido a la ausencia de evidencia normativa verificable en el corpus documental (PR-2, PR-3)."
+            )
+            return ChatResponse(
+                answer=answer,
+                citations=[],
+                mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+                evidence_status=EvidenceStatusEnum.ABSTENCION,
+                action_proposal=None,
+            )
+
+        # Para etapas E0-E4: determinar nivel de evidencia
+        if citations and rag_success:
+            evidence_status = EvidenceStatusEnum.COMPLETA
+            evidence_note = ""
+        else:
+            evidence_status = EvidenceStatusEnum.PARCIAL
+            evidence_note = "\n\n*Nota sobre evidencia:* Se verificaron las precondiciones operativas en FastMCP, pero la evidencia documental de respaldo es parcial o no pudo recuperarse completamente (PR-2, PR-3)."
+
+        # 9. Generar ActionDraft (SIN confirmation_token ni expiración, PR-1, PR-6)
+        action_draft = ActionDraft(
+            action_type="CAMBIO_ESTADO_TAREA",
+            tarea_id=tarea_id,
+            org_id=org_id,
+            estado_actual=estado_actual,
+            estado_propuesto=nuevo_estado,
+            justificacion=justificacion,
+        )
+
+        answer = (
+            f"Se ha preparado la propuesta de cambio para la tarea {tarea_id} de la organización {org_id}.\n\n"
+            f"- **Estado actual:** `{estado_actual}`\n"
+            f"- **Estado propuesto:** `{nuevo_estado}`\n"
+            f"- **Justificación:** {justificacion}\n\n"
+            f"Conforme a los principios PR-1 y PR-6, esta acción requiere confirmación humana interactiva. "
+            f"Revisa los detalles en el modal de confirmación y presiona 'Preparar acción' para continuar con el flujo en dos pasos.{evidence_note}"
+        )
+
+        return ChatResponse(
+            answer=answer,
+            citations=citations,
+            mcp_traces=[to_api_mcp_trace(t) for t in active_mcp.get_traces()],
+            evidence_status=evidence_status,
+            action_proposal=action_draft,
+        )
 
     def _evaluate_evidence_status(
         self,

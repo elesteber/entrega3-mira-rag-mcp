@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { Send, Loader2, AlertCircle, Sparkles, ArrowRight } from 'lucide-react'
 import type {
   ChatResponse,
-  ActionProposal,
+  ActionDraft,
   EvidenceStatus,
   Citation,
   HistoryMessage,
@@ -14,8 +14,9 @@ import { CitationCard } from './CitationCard'
 
 export interface ChatInterfaceProps {
   onResponse?: (response: ChatResponse) => void
-  onActionProposal?: (proposal: ActionProposal) => void
+  onActionProposal?: (proposal: ActionDraft) => void
   organizationContext?: string | null
+  organizationContextIsExplicit?: boolean
   className?: string
   sessionEpoch?: number
 }
@@ -26,7 +27,7 @@ interface MessageItem {
   content: string
   evidenceStatus?: EvidenceStatus
   citations?: Citation[]
-  actionProposal?: ActionProposal | null
+  actionProposal?: ActionDraft | null
 }
 
 interface ChatError {
@@ -45,6 +46,7 @@ export function ChatInterface({
   onResponse,
   onActionProposal,
   organizationContext,
+  organizationContextIsExplicit = false,
   className = '',
   sessionEpoch = 0,
 }: ChatInterfaceProps) {
@@ -110,6 +112,7 @@ export function ChatInterface({
         {
           message: trimmed,
           organization_context: organizationContext,
+          organization_context_is_explicit: organizationContextIsExplicit,
           conversation_history: history,
         },
         controller.signal,

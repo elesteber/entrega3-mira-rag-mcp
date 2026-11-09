@@ -14,7 +14,7 @@ describe('ActionConfirmationModal Component (T039)', () => {
     estado_propuesto: 'completada',
     justificacion: 'Se habilitó carpeta SFTP compartida y se verificó recepción de archivos según REQ-INT §4.1.',
     confirmation_token: 'secret-confirmation-token-never-expose',
-    expires_at: '2026-11-07T12:05:00Z',
+    expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
   }
 
   beforeEach(() => {
@@ -513,5 +513,70 @@ describe('ActionConfirmationModal Component (T039)', () => {
       expect(confirmSpy).toHaveBeenCalledWith('token-de-B-vigente', expect.any(AbortSignal))
       expect(confirmSpy).not.toHaveBeenCalledWith('token-de-A-obsoleto', expect.any(AbortSignal))
     })
+  })
+
+  it('P1-01: respuesta de prepare con estado_actual discrepante muestra error y deshabilita confirmación', async () => {
+    const user = userEvent.setup()
+
+    vi.spyOn(api, 'prepareAction').mockResolvedValueOnce({
+      proposal: {
+        ...mockProposal,
+        estado_actual: 'completada', // En el borrador era 'en_curso'
+        confirmation_token: 'token-mismatch-invalido',
+      },
+    } as ActionPrepareResponse)
+
+    render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={mockProposal}
+        onClose={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/El estado actual de la tarea cambió de 'en_curso' a 'completada' en el sistema/i),
+      ).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /confirmar y ejecutar/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /preparar acción/i })).toBeInTheDocument()
+    })
+  })
+
+  it('P3-02 / Corrección E: deshabilita la confirmación automáticamente cuando el token efímero expira sin esperar un clic', async () => {
+    const user = userEvent.setup()
+    const confirmSpy = vi.spyOn(api, 'confirmAction')
+
+    // Prepare retorna un token ya expirado (5 segundos en el pasado)
+    vi.spyOn(api, 'prepareAction').mockResolvedValueOnce({
+      proposal: {
+        ...mockProposal,
+        confirmation_token: 'token-expirado-123',
+        expires_at: new Date(Date.now() - 5000).toISOString(),
+      },
+    } as ActionPrepareResponse)
+
+    render(
+      <ActionConfirmationModal
+        isOpen={true}
+        proposal={mockProposal}
+        onClose={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /preparar acción/i }))
+
+    // El botón Confirmar y ejecutar se muestra pero queda deshabilitado automáticamente sin esperar un clic
+    await waitFor(() => {
+      const confirmBtn = screen.getByRole('button', { name: /confirmar y ejecutar/i })
+      expect(confirmBtn).toBeInTheDocument()
+      expect(confirmBtn).toBeDisabled()
+      expect(
+        screen.getByText(/El token de confirmación ha expirado \(validez de 5 minutos\)/i),
+      ).toBeInTheDocument()
+    })
+    expect(confirmSpy).not.toHaveBeenCalled()
   })
 })

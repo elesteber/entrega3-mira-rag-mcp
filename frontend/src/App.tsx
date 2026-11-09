@@ -5,7 +5,7 @@ import type {
   SimulatedUser,
   McpTrace,
   ChatResponse,
-  ActionProposal,
+  ActionDraft,
   ActionConfirmResponse,
 } from './types'
 import { SessionSelector } from './components/SessionSelector'
@@ -16,7 +16,7 @@ import { ActionConfirmationModal } from './components/ActionConfirmationModal'
 export function App() {
   const [currentUser, setCurrentUser] = useState<SimulatedUser | null>(null)
   const [activeTraces, setActiveTraces] = useState<McpTrace[]>([])
-  const [pendingProposal, setPendingProposal] = useState<ActionProposal | null>(null)
+  const [pendingProposal, setPendingProposal] = useState<ActionDraft | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [notification, setNotification] = useState<string | null>(null)
   const sessionEpochRef = useRef(0)
@@ -31,13 +31,9 @@ export function App() {
 
   const handleChatResponse = useCallback((response: ChatResponse) => {
     setActiveTraces(response.mcp_traces || [])
-    if (response.action_proposal) {
-      setPendingProposal(response.action_proposal)
-      setIsModalOpen(true)
-    }
   }, [])
 
-  const handleActionProposal = useCallback((proposal: ActionProposal) => {
+  const handleActionProposal = useCallback((proposal: ActionDraft) => {
     setPendingProposal(proposal)
     setIsModalOpen(true)
   }, [])
@@ -104,6 +100,7 @@ export function App() {
             <ChatInterface
               key={currentUser?.usuario_id ?? 'initial-session'}
               organizationContext={currentUser?.orgs_asignadas?.[0] ?? null}
+              organizationContextIsExplicit={false}
               onResponse={handleChatResponse}
               onActionProposal={handleActionProposal}
             />
