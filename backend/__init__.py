@@ -1,1 +1,1 @@
-"""Paquete de servicios MIRA."""
+"""Paquete backend de MIRA CU-3."""
