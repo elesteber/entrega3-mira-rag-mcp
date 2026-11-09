@@ -90,9 +90,40 @@ class TestSettings:
 
     def test_production_accepts_strong_jwt_secret(self):
         strong_secret = "clave_de_produccion_mira_super_segura_2026_xyz"
-        settings = Settings(ENVIRONMENT="production", JWT_SECRET=strong_secret)
+        strong_mcp_secret = "clave_mcp_delegation_produccion_32_bytes_min_segura_2026"
+        settings = Settings(
+            ENVIRONMENT="production",
+            JWT_SECRET=strong_secret,
+            MIRA_MCP_DELEGATION_SECRET=strong_mcp_secret,
+        )
         assert settings.is_production is True
         assert settings.JWT_SECRET == strong_secret
+        assert settings.MIRA_MCP_DELEGATION_SECRET == strong_mcp_secret
+
+    def test_production_rejects_missing_or_weak_mcp_delegation_secret(self):
+        strong_secret = "clave_de_produccion_mira_super_segura_2026_xyz"
+        # 1. Falta MIRA_MCP_DELEGATION_SECRET
+        with pytest.raises(ValidationError) as exc_missing:
+            Settings(ENVIRONMENT="production", JWT_SECRET=strong_secret, MIRA_MCP_DELEGATION_SECRET="")
+        assert "MIRA_MCP_DELEGATION_SECRET es obligatoria" in str(exc_missing.value)
+
+        # 2. MIRA_MCP_DELEGATION_SECRET demasiado corto
+        with pytest.raises(ValidationError) as exc_short:
+            Settings(
+                ENVIRONMENT="production",
+                JWT_SECRET=strong_secret,
+                MIRA_MCP_DELEGATION_SECRET="secreto_corto_de_20_caract",
+            )
+        assert "al menos 32 bytes UTF-8" in str(exc_short.value)
+
+        # 3. MIRA_MCP_DELEGATION_SECRET idéntico a JWT_SECRET
+        with pytest.raises(ValidationError) as exc_same:
+            Settings(
+                ENVIRONMENT="production",
+                JWT_SECRET=strong_secret,
+                MIRA_MCP_DELEGATION_SECRET=strong_secret,
+            )
+        assert "no puede ser idéntica a JWT_SECRET" in str(exc_same.value)
 
     def test_resolved_paths(self):
         settings = Settings()

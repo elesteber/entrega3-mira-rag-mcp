@@ -23,7 +23,7 @@ from backend.mcp.client import MiraMcpClient, McpTrace as ClientMcpTrace
 
 
 @pytest.fixture
-def mock_cu3_mcp_server():
+def mock_cu3_mcp_server(mcp_delegation_env):
     """Servidor FastMCP en memoria que simula las 5 herramientas oficiales de consulta."""
     server = FastMCP("mock_cu3_full_server")
 
@@ -325,7 +325,7 @@ class TestOrchestratorLogic:
         assert "T-023" in response.answer
 
     @pytest.mark.asyncio
-    async def test_rag_missing_mandatory_metadata_discarded(self):
+    async def test_rag_missing_mandatory_metadata_discarded(self, mcp_delegation_env):
         """Verifica que fragmentos RAG con metadatos faltantes sean descartados sin inventar valores por defecto (PR-2)."""
         server = FastMCP("mock_rag_incomplete")
 
@@ -386,7 +386,7 @@ class TestOrchestratorLogic:
         assert response.citations[0].doc_code == "GUI-INC"
 
     @pytest.mark.asyncio
-    async def test_mcp_tool_failure_degrades_evidence_status_to_parcial(self):
+    async def test_mcp_tool_failure_degrades_evidence_status_to_parcial(self, mcp_delegation_env):
         """Verifica que fallos en herramientas MCP degraden el estado de evidencia a PARCIAL (PR-3, PR-5)."""
         server = FastMCP("mock_mcp_failure")
 

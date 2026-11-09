@@ -20,6 +20,7 @@ logger = logging.getLogger("mira_cu3.config")
 KNOWN_INSECURE_JWT_SECRETS: Set[str] = {
     "",
     "mira_demo_secret_key_development_only_2026",
+    "super-secret-key-change-in-production",
     "secret",
     "changeme",
     "jwt_secret",
@@ -86,6 +87,12 @@ class Settings(BaseSettings):
         description="Duración en minutos del token de confirmación de acción (TTL estricto de 5 min)",
     )
 
+    # Delegación de identidad MCP por transporte (AUD-03, PR-7)
+    MIRA_MCP_DELEGATION_SECRET: str = Field(
+        default="",
+        description="Clave secreta compartida e independiente para delegación de identidad en FastMCP (AUD-03, PR-7)",
+    )
+
     # Servidor FastMCP y Transporte stdio
     MCP_SERVER_COMMAND: str = Field(default="python", description="Comando o intérprete para el servidor MCP")
     MCP_SERVER_SCRIPT: str = Field(
@@ -124,9 +131,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_jwt_secret(self) -> "Settings":
-        """Impide de forma explícita el arranque en producción con una clave JWT insegura o predeterminada."""
+        """Impide el arranque en producción con claves inseguras, débiles o duplicadas (AUD-03)."""
+        secret = self.JWT_SECRET or ""
+        mcp_secret = self.MIRA_MCP_DELEGATION_SECRET or ""
+
         if self.is_production:
-            secret = (self.JWT_SECRET or "").strip()
             if not secret:
                 raise ValueError(
                     "CONFIGURACIÓN CRÍTICA: En entorno 'production' no se permite una clave JWT_SECRET vacía."
@@ -139,6 +148,29 @@ class Settings(BaseSettings):
             if len(secret) < 16:
                 raise ValueError(
                     "CONFIGURACIÓN CRÍTICA: En entorno 'production' JWT_SECRET debe tener al menos 16 caracteres."
+                )
+            # Validación estricta en producción para la clave de delegación MCP (AUD-03)
+            if not mcp_secret:
+                raise ValueError(
+                    "CONFIGURACIÓN CRÍTICA: En entorno 'production' MIRA_MCP_DELEGATION_SECRET es obligatoria."
+                )
+            if len(mcp_secret.encode("utf-8")) < 32:
+                raise ValueError(
+                    "CONFIGURACIÓN CRÍTICA: En entorno 'production' MIRA_MCP_DELEGATION_SECRET debe tener al menos 32 bytes UTF-8."
+                )
+            if mcp_secret == secret:
+                raise ValueError(
+                    "CONFIGURACIÓN CRÍTICA: MIRA_MCP_DELEGATION_SECRET no puede ser idéntica a JWT_SECRET."
+                )
+            if mcp_secret.lower() in KNOWN_INSECURE_JWT_SECRETS or "development_only" in mcp_secret.lower():
+                raise ValueError(
+                    "CONFIGURACIÓN CRÍTICA: En entorno 'production' MIRA_MCP_DELEGATION_SECRET no puede ser una clave insegura conocida."
+                )
+        else:
+            # En entornos no productivos: si se configura MIRA_MCP_DELEGATION_SECRET, debe ser independiente de JWT_SECRET
+            if mcp_secret and secret and mcp_secret == secret:
+                raise ValueError(
+                    "MIRA_MCP_DELEGATION_SECRET debe ser independiente y estrictamente distinta de JWT_SECRET."
                 )
         return self
 

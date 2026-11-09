@@ -32,6 +32,7 @@ import asyncio
 import copy
 from datetime import datetime
 import logging
+import os
 from pathlib import Path
 import re
 import time
@@ -43,7 +44,7 @@ from fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
 from backend.app.config import get_settings
-from backend.app.security import SimulatedUser
+from backend.app.security import SimulatedUser, create_mcp_delegation_token
 
 logger = logging.getLogger("mira_cu3.mcp_client")
 
@@ -71,6 +72,11 @@ SENSITIVE_FIELD_NAMES: frozenset[str] = frozenset({
     "api_key",
     "authorization",
     "bearer",
+    "mira_delegation",
+    "delegation",
+    "mcp_delegation",
+    "delegation_token",
+    "mira_mcp_delegation_secret",
 })
 
 JWT_REGEX = re.compile(r"^[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}$")
@@ -192,7 +198,7 @@ def sanitize_payload(payload: Any) -> Any:
 PATH_POSIX_REGEX = re.compile(r"(?:/[a-zA-Z0-9_\.\-]+){2,}")
 PATH_WINDOWS_REGEX = re.compile(r"[a-zA-Z]:\\[a-zA-Z0-9_\.\-\\]+")
 SECRET_MARKER_REGEX = re.compile(r"(?i)\b(?:MARCADOR_SECRETO[a-zA-Z0-9_]*|SECRET_[a-zA-Z0-9_]*|API_KEY[a-zA-Z0-9_]*)\b")
-SECRET_KV_REGEX = re.compile(r"(?i)\b(token|key|secret|password|bearer)[:=\s]+([^\s,;]+)")
+SECRET_KV_REGEX = re.compile(r"(?i)\b(token|key|secret|password|bearer|mira_delegation|delegation)[:=\s]+([^\s,;]+)")
 
 
 def sanitize_mcp_error(error_text: Optional[str]) -> Optional[str]:
@@ -284,9 +290,20 @@ class MiraMcpClient:
                         f"No se encontró el script del servidor FastMCP en '{resolved}'. "
                         "El PR de Rodrigo implementará backend/mcp/server.py."
                     )
+                settings = get_settings()
+                merged_env = dict(os.environ)
+                if settings.MIRA_MCP_DELEGATION_SECRET:
+                    merged_env["MIRA_MCP_DELEGATION_SECRET"] = settings.MIRA_MCP_DELEGATION_SECRET
+                if settings.JWT_SECRET:
+                    merged_env["JWT_SECRET"] = settings.JWT_SECRET
+                if settings.SQLITE_DB_PATH:
+                    merged_env["SQLITE_DB_PATH"] = str(settings.resolved_sqlite_path)
+                if self._env:
+                    merged_env.update(self._env)
+
                 self._transport = PythonStdioTransport(
                     script_path=str(resolved),
-                    env=self._env,
+                    env=merged_env,
                     cwd=self._cwd,
                 )
 
@@ -507,26 +524,45 @@ class MiraMcpClient:
         start_time = time.perf_counter()
 
         try:
-            # Propagación de identidad confiable y validación de aislamiento (PR-7, AUD-03)
+            # 1. Validación de contexto de usuario autenticado confiable (PR-7, AUD-03)
+            if user_context is None or not isinstance(user_context, SimulatedUser):
+                err_msg = (
+                    "Delegación MCP denegada: se requiere un usuario autenticado SimulatedUser válido (PR-7, AUD-03)."
+                )
+                logger.warning(err_msg)
+                self._record_trace(tool_name, 0.0, False, sanitized_args, None, sanitize_mcp_error(err_msg))
+                raise McpSecurityError(err_msg)
+
+            # 2. Generación segura del token de delegación de identidad por invocación (AUD-03)
+            try:
+                delegation_token = create_mcp_delegation_token(user_context)
+            except Exception as e:
+                err_msg = f"Fallo al emitir la delegación MCP para el usuario '{user_context.usuario_id}': {str(e)}"
+                logger.error(err_msg)
+                self._record_trace(tool_name, 0.0, False, sanitized_args, None, sanitize_mcp_error(err_msg))
+                raise McpSecurityError(err_msg) from e
+
+            # 3. Propagación de identidad confiable y validación de aislamiento (PR-7, AUD-03)
             final_args = dict(arguments)
-            if user_context:
-                if "org_id" in final_args and final_args["org_id"]:
-                    req_org = str(final_args["org_id"]).strip().upper()
-                    from backend.app.security import check_user_organization_access
-                    if not check_user_organization_access(user_context, req_org):
-                        err_msg = (
-                            f"Violación de aislamiento organizacional (PR-7): El usuario {user_context.usuario_id} "
-                            f"({user_context.rol}) no tiene autorización sobre la organización {req_org}."
-                        )
-                        logger.warning(err_msg)
-                        self._record_trace(tool_name, 0.0, False, sanitized_args, None, sanitize_mcp_error(err_msg))
-                        raise McpSecurityError(err_msg)
+            if "org_id" in final_args and final_args["org_id"]:
+                req_org = str(final_args["org_id"]).strip().upper()
+                from backend.app.security import check_user_organization_access
+                if not check_user_organization_access(user_context, req_org):
+                    err_msg = (
+                        f"Violación de aislamiento organizacional (PR-7): El usuario {user_context.usuario_id} "
+                        f"({user_context.rol}) no tiene autorización sobre la organización {req_org}."
+                    )
+                    logger.warning(err_msg)
+                    self._record_trace(tool_name, 0.0, False, sanitized_args, None, sanitize_mcp_error(err_msg))
+                    raise McpSecurityError(err_msg)
 
-                # El backend asegura identidad validada (PR-7, AUD-03): sustituir usuario_id si aplica
-                if "usuario_id" in final_args:
-                    final_args["usuario_id"] = user_context.usuario_id
+            # El backend asegura identidad validada (PR-7, AUD-03): sustituir usuario_id si aplica
+            if "usuario_id" in final_args:
+                final_args["usuario_id"] = user_context.usuario_id
 
-            call_coro = self._client.call_tool(tool_name, final_args)
+            # 4. Invocación al cliente FastMCP con metadata de delegación fuera del payload LLM
+            mcp_meta = {"mira_delegation": delegation_token}
+            call_coro = self._client.call_tool(tool_name, final_args, meta=mcp_meta)
             raw_result = await asyncio.wait_for(call_coro, timeout=self._timeout)
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
 

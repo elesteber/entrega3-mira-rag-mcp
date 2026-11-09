@@ -65,6 +65,11 @@ class SimulatedUser(BaseModel):
         description="Lista de códigos de organización asignadas para gestión operativa",
     )
 
+    @property
+    def id(self) -> str:
+        """Alias para usuario_id garantizando compatibilidad con interfaces de identidad."""
+        return self.usuario_id
+
 
 class SessionTokenResponse(BaseModel):
     """Respuesta al conmutar o inicializar sesión de demostración."""
@@ -581,3 +586,182 @@ def get_current_user_from_header(
                 "principle_violated": "PR-7",
             },
         ) from e
+
+
+# ==============================================================================
+# Delegación Criptográfica de Identidad para Invocaciones MCP (AUD-03, PR-7)
+# ==============================================================================
+
+MCP_DELEGATION_TYP = "mira-mcp-delegation+jwt"
+MCP_DELEGATION_TOKEN_TYPE = "mcp_delegation"
+MCP_DELEGATION_ISSUER = "mira-api"
+MCP_DELEGATION_AUDIENCE = "mira-cu3-mcp"
+MCP_DELEGATION_MAX_TTL_SECONDS = 300
+
+
+def validate_mcp_delegation_secret(secret: str, jwt_secret: Optional[str] = None) -> None:
+    """Valida que el secreto de delegación cumpla estrictamente el contrato AUD-03.
+
+    Contrato técnico:
+    - Longitud mínima: 32 bytes UTF-8 (len(secret.encode('utf-8')) >= 32).
+    - Independiente de JWT_SECRET (secret != JWT_SECRET).
+    - Prohibido DEFAULT_JWT_SECRET o claves inseguras conocidas (KNOWN_INSECURE_JWT_SECRETS).
+    - Preserva los bytes exactos sin aplicar strip() a la clave HMAC.
+    """
+    from backend.app.config import KNOWN_INSECURE_JWT_SECRETS
+
+    if not isinstance(secret, str) or not secret:
+        raise SecurityError(
+            "MIRA_MCP_DELEGATION_SECRET no está configurado o está vacío en el servidor.",
+            code="MCP_DELEGATION_SECRET_MISSING",
+            status_code=500,
+        )
+
+    secret_bytes = secret.encode("utf-8")
+    if len(secret_bytes) < 32:
+        raise SecurityError(
+            f"MIRA_MCP_DELEGATION_SECRET es demasiado débil: tiene {len(secret_bytes)} bytes UTF-8 (mínimo requerido: 32).",
+            code="MCP_DELEGATION_SECRET_TOO_SHORT",
+            status_code=500,
+        )
+
+    effective_jwt = jwt_secret if jwt_secret is not None else get_settings().JWT_SECRET
+    if secret == effective_jwt:
+        raise SecurityError(
+            "MIRA_MCP_DELEGATION_SECRET no puede ser idéntico a JWT_SECRET (deben ser claves independientes).",
+            code="MCP_DELEGATION_SECRET_IDENTICAL_TO_JWT",
+            status_code=500,
+        )
+
+    if (
+        secret in KNOWN_INSECURE_JWT_SECRETS
+        or secret.lower() in KNOWN_INSECURE_JWT_SECRETS
+        or secret == "super-secret-key-change-in-production"
+        or "development_only" in secret.lower()
+    ):
+        raise SecurityError(
+            "MIRA_MCP_DELEGATION_SECRET utiliza una clave predeterminada o insegura prohibida.",
+            code="MCP_DELEGATION_SECRET_INSECURE",
+            status_code=500,
+        )
+
+
+def create_mcp_delegation_token(
+    user: SimulatedUser,
+    ttl_seconds: int = MCP_DELEGATION_MAX_TTL_SECONDS,
+    secret_override: Optional[str] = None,
+) -> str:
+    """Emite un JWT de delegación de identidad por invocación hacia FastMCP (AUD-03, PR-7).
+
+    La identidad efectiva proviene exclusivamente de la sesión verificada en el backend FastAPI
+    (SimulatedUser), garantizando que el modelo generativo jamás pueda inyectar o alterar identidades (PR-7).
+
+    Contrato del token:
+    - Header: alg="HS256", typ="mira-mcp-delegation+jwt".
+    - Claims requeridos:
+      * sub: identificador del usuario autenticado en SQLite (ej. 'U-I1').
+      * iss: 'mira-api'.
+      * aud: 'mira-cu3-mcp'.
+      * token_type: 'mcp_delegation'.
+      * iat: entero NumericDate (<= timestamp actual).
+      * exp: entero NumericDate (0 < exp - iat <= 300).
+      * jti: UUID v4 no vacío.
+    - Exclusión de roles y permisos: se resuelven en el servidor FastMCP contra SQLite.
+    """
+    if not isinstance(user, SimulatedUser):
+        raise InvalidTokenError("Se requiere un usuario autenticado SimulatedUser válido para emitir delegación MCP.")
+
+    user_id = (getattr(user, "usuario_id", None) or getattr(user, "id", "")).strip()
+    if not user_id:
+        raise InvalidTokenError("El usuario simulado no posee un identificador de usuario válido.")
+
+    if not isinstance(ttl_seconds, int) or not (0 < ttl_seconds <= MCP_DELEGATION_MAX_TTL_SECONDS):
+        raise InvalidTokenError(
+            f"TTL de delegación inválido: debe ser un entero entre 1 y {MCP_DELEGATION_MAX_TTL_SECONDS} segundos."
+        )
+
+    settings = get_settings()
+    secret = secret_override if secret_override is not None else settings.MIRA_MCP_DELEGATION_SECRET
+    validate_mcp_delegation_secret(secret, jwt_secret=settings.JWT_SECRET)
+
+    now_dt = datetime.now(timezone.utc)
+    iat = int(now_dt.timestamp())
+    exp = iat + ttl_seconds
+    jti = str(uuid.uuid4())
+
+    payload: Dict[str, Any] = {
+        "sub": user_id,
+        "iss": MCP_DELEGATION_ISSUER,
+        "aud": MCP_DELEGATION_AUDIENCE,
+        "token_type": MCP_DELEGATION_TOKEN_TYPE,
+        "iat": iat,
+        "exp": exp,
+        "jti": jti,
+    }
+
+    token = jwt.encode(
+        payload,
+        secret,
+        algorithm="HS256",
+        headers={"typ": MCP_DELEGATION_TYP, "alg": "HS256"},
+    )
+    return token
+
+
+def verify_mcp_delegation_token(
+    token: str,
+    secret_override: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Verifica criptográfica y contractualmente un JWT de delegación MCP (AUD-03).
+
+    Utilizado para verificación cruzada y pruebas de integración locales.
+    """
+    if not isinstance(token, str) or not token.strip():
+        raise InvalidTokenError("Credencial de delegación ausente o vacía.")
+
+    settings = get_settings()
+    secret = secret_override if secret_override is not None else settings.MIRA_MCP_DELEGATION_SECRET
+    validate_mcp_delegation_secret(secret, jwt_secret=settings.JWT_SECRET)
+
+    try:
+        header = jwt.get_unverified_header(token)
+    except Exception as e:
+        raise InvalidTokenError(f"Encabezado de delegación MCP no legible: {str(e)}") from e
+
+    if header.get("typ") != MCP_DELEGATION_TYP:
+        raise InvalidTokenError(f"Tipo de token inválido en header: se esperaba '{MCP_DELEGATION_TYP}'.")
+
+    try:
+        payload = jwt.decode(
+            token,
+            secret,
+            algorithms=["HS256"],
+            audience=MCP_DELEGATION_AUDIENCE,
+            issuer=MCP_DELEGATION_ISSUER,
+            options={
+                "require": ["sub", "iss", "aud", "exp", "iat", "jti", "token_type"],
+                "strict_aud": True,
+            },
+        )
+    except jwt.ExpiredSignatureError as e:
+        raise TokenExpiredError("La credencial de delegación MCP ha expirado.") from e
+    except jwt.PyJWTError as e:
+        raise InvalidTokenError(f"Firma o formato de delegación MCP no válido: {str(e)}") from e
+
+    if payload.get("token_type") != MCP_DELEGATION_TOKEN_TYPE:
+        raise InvalidTokenError(f"Claim 'token_type' inválido: '{payload.get('token_type')}'.")
+
+    for field in ("iat", "exp"):
+        if type(payload.get(field)) is not int:
+            raise InvalidTokenError(f"Claim '{field}' debe ser estrictamente de tipo entero NumericDate.")
+
+    diff = payload["exp"] - payload["iat"]
+    if not (0 < diff <= MCP_DELEGATION_MAX_TTL_SECONDS):
+        raise InvalidTokenError(f"Vigencia de delegación inválida: {diff} segundos (máximo permitido: {MCP_DELEGATION_MAX_TTL_SECONDS}s).")
+
+    for field in ("sub", "jti"):
+        val = payload.get(field)
+        if not isinstance(val, str) or not val.strip():
+            raise InvalidTokenError(f"Claim '{field}' debe ser una cadena de texto no vacía.")
+
+    return payload

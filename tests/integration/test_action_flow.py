@@ -36,7 +36,7 @@ from backend.mcp.client import (
 
 
 @pytest.fixture
-def mock_mcp_actions_server():
+def mock_mcp_actions_server(mcp_delegation_env):
     """Servidor FastMCP en memoria que simula checklist_organizacion y marcar_tarea."""
     server = FastMCP("mock_actions_mcp_server")
 

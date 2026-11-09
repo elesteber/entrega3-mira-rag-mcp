@@ -9,11 +9,12 @@ from pathlib import Path
 import tempfile
 import pytest
 
+from backend.app.security import SimulatedUser
 from backend.mcp.client import MiraMcpClient, McpSecurityError
 
 
 @pytest.fixture
-def temp_stdio_server():
+def temp_stdio_server(mcp_delegation_env):
     """Genera un script temporal con un servidor FastMCP mínimo para pruebas stdio reales."""
     server_code = '''
 from fastmcp import FastMCP
@@ -66,6 +67,12 @@ class TestMcpStdioIntegration:
 
     @pytest.mark.asyncio
     async def test_stdio_subproc_discovery_and_invocation(self, temp_stdio_server):
+        u1 = SimulatedUser(
+            usuario_id="U-I1",
+            nombre="Sofía Tapia",
+            rol="ejecutivo_implementacion",
+            orgs_asignadas=["ORG-05", "ORG-07"],
+        )
         async with MiraMcpClient(script_path=temp_stdio_server, timeout=10.0) as client:
             assert client.is_connected is True
 
@@ -85,6 +92,7 @@ class TestMcpStdioIntegration:
             query_res = await client.call_tool_for_llm(
                 "buscar_reglas",
                 {"query": "plazos de entrega", "top_k": 2},
+                user_context=u1,
             )
             assert query_res.success is True
             assert query_res.tool_name == "buscar_reglas"
@@ -100,6 +108,7 @@ class TestMcpStdioIntegration:
                 tarea_id="T-006",
                 nuevo_estado="completada",
                 token_confirmacion="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_token.sig",
+                user_context=u1,
             )
             assert mutation_res.success is True
             assert mutation_res.data["tarea_id"] == "T-006"

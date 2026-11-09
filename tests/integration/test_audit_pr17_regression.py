@@ -166,7 +166,7 @@ class TestAuditPr17Regression:
     # AUD-03: Propagación de identidad y rechazo de datos cruzados (P4)
     # ==========================================================================
     @pytest.mark.asyncio
-    async def test_aud03_cross_organization_mcp_response_rejected(self) -> None:
+    async def test_aud03_cross_organization_mcp_response_rejected(self, mcp_delegation_env) -> None:
         """P4: Respuesta de MCP declarando org_id ajeno debe ser rechazada."""
         client = MiraMcpClient()
 

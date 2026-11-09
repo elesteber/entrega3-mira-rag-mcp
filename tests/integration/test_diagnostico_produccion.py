@@ -18,7 +18,7 @@ from backend.mcp.client import MiraMcpClient
 
 
 @pytest.fixture
-def mock_cu3_fastmcp_server():
+def mock_cu3_fastmcp_server(mcp_delegation_env):
     """Servidor FastMCP en memoria configurado con los datos oficiales de prueba del CU-3."""
     server = FastMCP("cu3_integration_server")
 
