@@ -116,3 +116,14 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
   3. Desacopla la importación administrativa offline del acceso operativo en tiempo de ejecución.
   4. Permite auditoría completa de fecha, usuario y justificación para cada transición.
 - **Alternativas consideradas:** Sobreescritura directa de la tabla `tareas` (descartada por vulnerar la inmutabilidad exigida por la cátedra); almacenamiento de eventos en archivos JSON planos (descartado por falta de transaccionalidad ACID y soporte relacional).
+
+### ADR-10: Delegación firmada por solicitud MCP stdio (AUD-03)
+- **Estado:** Aceptada para esta corrección.
+- **Decisión:** Middleware FastMCP verifica JWT HS256 en metadata `mira_delegation`,
+  con secreto independiente por entorno y contexto aislado restaurado al finalizar.
+  SQLite sigue siendo la autoridad de permisos; `usuario_id` solo es una aserción.
+- **Justificación:** Cierra la suplantación por argumentos y permite compartir un
+  transporte entre usuarios sin identidad persistente de sesión MCP.
+- **Alternativas:** Identidad declarada en argumentos (insegura); identidad fija por
+  proceso (impide multiplexar usuarios); autenticación HTTP (no cubre stdio).
+- **Contrato y plan:** `docs/aud-03-auth-stdio.md`. Integración PR #17 pendiente.

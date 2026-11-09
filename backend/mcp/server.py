@@ -5,7 +5,7 @@ Registra modularmente herramientas de consulta (RAG + SQL parametrizado) y mutac
 
 from __future__ import annotations
 
-import sys
+from backend.mcp.transport_auth import DelegationMiddleware
 from fastmcp import FastMCP
 
 from backend.mcp.tools.mutation_tools import marcar_tarea
@@ -20,6 +20,7 @@ from backend.mcp.tools.sql_tools import (
 # Instancia central del servidor FastMCP
 mcp = FastMCP(
     name="mira-cu3-server",
+    middleware=[DelegationMiddleware()],
 )
 
 # 1. Registro de herramientas de consulta (expuestas al LLM)
