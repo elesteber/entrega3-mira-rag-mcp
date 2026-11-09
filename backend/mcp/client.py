@@ -224,6 +224,126 @@ def sanitize_mcp_error(error_text: Optional[str]) -> Optional[str]:
 
 
 # ==============================================================================
+# Principio de Mínimo Privilegio: Filtrado Seguro de Entorno para Subprocesos MCP
+# ==============================================================================
+
+# Variables de sistema estrictamente indispensables para que uv y Python ejecuten el subproceso
+MCP_ALLOWED_SYSTEM_ENV_VARS: frozenset[str] = frozenset({
+    "PATH",
+    "VIRTUAL_ENV",
+    "PYTHONPATH",
+    "PYTHONHOME",
+    "HOME",
+    "TMPDIR",
+    "TEMP",
+    "TMP",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "USER",
+    "LOGNAME",
+    "LD_LIBRARY_PATH",
+    # Entornos Windows
+    "SYSTEMROOT",
+    "COMSPEC",
+    "PATHEXT",
+    "WINDIR",
+})
+
+# Variables operativas de configuración y datos permitidas para el servidor FastMCP
+MCP_ALLOWED_APPLICATION_ENV_VARS: frozenset[str] = frozenset({
+    "MIRA_MCP_DELEGATION_SECRET",
+    "JWT_SECRET",
+    "SQLITE_DB_PATH",
+    "DATABASE_URL",
+    "CHROMADB_PATH",
+    "CHROMA_PERSIST_DIRECTORY",
+    "CORPUS_DIR",
+    "EXCEL_DATA_PATH",
+    "EMBEDDING_MODEL_NAME",
+    "EMBEDDING_MAX_SEQ_LENGTH",
+    "RAG_MODO_BUSQUEDA",
+    "RAG_BM25_PREFIJO",
+    "RAG_TOP_K",
+    "RAG_SCORE_THRESHOLD",
+    "LOG_LEVEL",
+    "ENVIRONMENT",
+})
+
+# Variables explícitamente prohibidas para el subproceso MCP (credenciales LLM y frontend)
+MCP_PROHIBITED_ENV_VARS: frozenset[str] = frozenset({
+    "GEMINI_API_KEY",
+    "GOOGLE_API_KEY",
+    "VITE_API_BASE_URL",
+})
+
+
+def build_mcp_subprocess_env(
+    settings: Any,
+    base_environ: Optional[Dict[str, str]] = None,
+    extra_env: Optional[Dict[str, str]] = None,
+) -> Dict[str, str]:
+    """Construye un entorno mínimo, seguro y estrictamente filtrado para PythonStdioTransport (PR-7).
+
+    Aplica el principio de mínimo privilegio:
+    1. Preserva exclusivamente las variables del sistema indispensables para iniciar Python y uv.
+    2. Incorpora únicamente las variables operativas requeridas por el servidor MCP (SQLite, ChromaDB, secretos de transporte).
+    3. Excluye taxativamente GEMINI_API_KEY, credenciales del frontend y tokens de servicios externos.
+    4. Filtra extra_env (self._env) permitiendo únicamente overrides legítimos autorizados.
+    """
+    env_source = base_environ if base_environ is not None else os.environ
+    filtered_env: Dict[str, str] = {}
+
+    # 1. Variables imprescindibles del sistema para ejecutar Python en el entorno uv
+    for key in MCP_ALLOWED_SYSTEM_ENV_VARS:
+        if key in env_source:
+            filtered_env[key] = env_source[key]
+
+    # 2. Variables operativas autorizadas presentes en el entorno
+    for key in MCP_ALLOWED_APPLICATION_ENV_VARS:
+        if key in env_source:
+            filtered_env[key] = env_source[key]
+
+    # 3. Inyección controlada y tipada desde Settings
+    if getattr(settings, "MIRA_MCP_DELEGATION_SECRET", None):
+        filtered_env["MIRA_MCP_DELEGATION_SECRET"] = settings.MIRA_MCP_DELEGATION_SECRET
+    if getattr(settings, "JWT_SECRET", None):
+        filtered_env["JWT_SECRET"] = settings.JWT_SECRET
+    if getattr(settings, "SQLITE_DB_PATH", None):
+        filtered_env["SQLITE_DB_PATH"] = str(settings.resolved_sqlite_path)
+    if getattr(settings, "CHROMADB_PATH", None):
+        filtered_env["CHROMADB_PATH"] = str(settings.resolved_chroma_path)
+    if getattr(settings, "CORPUS_DIR", None):
+        filtered_env["CORPUS_DIR"] = settings.CORPUS_DIR
+    if getattr(settings, "LOG_LEVEL", None):
+        filtered_env["LOG_LEVEL"] = settings.LOG_LEVEL
+    if getattr(settings, "ENVIRONMENT", None):
+        filtered_env["ENVIRONMENT"] = settings.ENVIRONMENT
+
+    # 4. Overrides legítimos pasados explícitamente en extra_env (self._env)
+    if extra_env:
+        for k, v in extra_env.items():
+            k_clean = str(k).strip()
+            k_upper = k_clean.upper()
+            if (
+                k_clean in MCP_ALLOWED_APPLICATION_ENV_VARS
+                or k_clean in MCP_ALLOWED_SYSTEM_ENV_VARS
+                or k_upper in MCP_ALLOWED_APPLICATION_ENV_VARS
+            ):
+                if k_upper not in MCP_PROHIBITED_ENV_VARS and not k_upper.startswith("VITE_"):
+                    filtered_env[k_clean] = str(v)
+
+    # 5. Salvaguarda final: purga absoluta de cualquier variable prohibida o credencial externa
+    for prohibited in MCP_PROHIBITED_ENV_VARS:
+        filtered_env.pop(prohibited, None)
+    for k in list(filtered_env.keys()):
+        if k.upper().startswith("VITE_") or "GEMINI" in k.upper():
+            filtered_env.pop(k, None)
+
+    return filtered_env
+
+
+# ==============================================================================
 # Cliente FastMCP Principal
 # ==============================================================================
 
@@ -291,19 +411,11 @@ class MiraMcpClient:
                         "El PR de Rodrigo implementará backend/mcp/server.py."
                     )
                 settings = get_settings()
-                merged_env = dict(os.environ)
-                if settings.MIRA_MCP_DELEGATION_SECRET:
-                    merged_env["MIRA_MCP_DELEGATION_SECRET"] = settings.MIRA_MCP_DELEGATION_SECRET
-                if settings.JWT_SECRET:
-                    merged_env["JWT_SECRET"] = settings.JWT_SECRET
-                if settings.SQLITE_DB_PATH:
-                    merged_env["SQLITE_DB_PATH"] = str(settings.resolved_sqlite_path)
-                if self._env:
-                    merged_env.update(self._env)
+                mcp_env = build_mcp_subprocess_env(settings=settings, extra_env=self._env)
 
                 self._transport = PythonStdioTransport(
                     script_path=str(resolved),
-                    env=merged_env,
+                    env=mcp_env,
                     cwd=self._cwd,
                 )
 

@@ -557,3 +557,116 @@ class TestMcpDelegationAuthentication:
         with pytest.raises(McpSecurityError) as exc_client:
             await client.call_tool_for_llm("buscar_reglas", {"query": "test"}, user_context=u1)
         assert "Fallo al emitir la delegación MCP" in str(exc_client.value) or "no está configurado" in str(exc_client.value)
+
+
+class TestMcpSubprocessEnvironmentLeastPrivilege:
+    """Pruebas del principio de mínimo privilegio en el entorno de PythonStdioTransport (PR-7)."""
+
+    def test_build_mcp_subprocess_env_preserves_runtime_and_config(self):
+        """Verifica que se preserven las variables de runtime (PATH, VIRTUAL_ENV) y configuración operativa."""
+        from backend.app.config import Settings
+        from backend.mcp.client import build_mcp_subprocess_env
+
+        dummy_environ = {
+            "PATH": "/usr/bin:/bin",
+            "VIRTUAL_ENV": "/home/user/project/.venv",
+            "HOME": "/home/user",
+            "GEMINI_API_KEY": "AIzaSySecretDoNotLeak12345",
+            "VITE_API_BASE_URL": "http://localhost:8000/api",
+            "DATABASE_URL": "sqlite:///backend/data/mira_cu3.db",
+            "SECRET_OTRO_SISTEMA": "token_sensible_externo",
+        }
+        settings = Settings(
+            JWT_SECRET="clave_de_desarrollo_segura_32_bytes_min_xyz",
+            MIRA_MCP_DELEGATION_SECRET="clave_mcp_delegation_32_bytes_min_segura",
+            SQLITE_DB_PATH="backend/data/mira_cu3.db",
+        )
+
+        built_env = build_mcp_subprocess_env(settings=settings, base_environ=dummy_environ)
+
+        # Variables indispensables conservadas
+        assert built_env["PATH"] == "/usr/bin:/bin"
+        assert built_env["VIRTUAL_ENV"] == "/home/user/project/.venv"
+        assert built_env["HOME"] == "/home/user"
+        assert built_env["MIRA_MCP_DELEGATION_SECRET"] == "clave_mcp_delegation_32_bytes_min_segura"
+        assert built_env["JWT_SECRET"] == "clave_de_desarrollo_segura_32_bytes_min_xyz"
+        assert built_env["SQLITE_DB_PATH"].endswith("mira_cu3.db")
+
+        # Variables no autorizadas y credenciales purgadas taxativamente
+        assert "GEMINI_API_KEY" not in built_env
+        assert "VITE_API_BASE_URL" not in built_env
+        assert "SECRET_OTRO_SISTEMA" not in built_env
+        assert "AIzaSySecretDoNotLeak12345" not in built_env.values()
+
+    def test_build_mcp_subprocess_env_filters_unauthorized_extra_env(self):
+        """Verifica que self._env solo permita overrides legítimos y filtre variables prohibidas."""
+        from backend.app.config import Settings
+        from backend.mcp.client import build_mcp_subprocess_env
+
+        settings = Settings(
+            JWT_SECRET="clave_de_desarrollo_segura_32_bytes_min_xyz",
+            MIRA_MCP_DELEGATION_SECRET="clave_mcp_delegation_32_bytes_min_segura",
+        )
+        extra_env = {
+            "MIRA_MCP_DELEGATION_SECRET": "override_mcp_secret_legitimo_de_prueba_32b",
+            "SQLITE_DB_PATH": "/tmp/test_custom.db",
+            "GEMINI_API_KEY": "intento_de_inyeccion_gemini_key",
+            "VITE_CUSTOM": "http://malicious.com",
+            "VARIABLE_ARBITRARIA": "no_permitida",
+        }
+
+        built_env = build_mcp_subprocess_env(settings=settings, base_environ={}, extra_env=extra_env)
+
+        # Overrides legítimos permitidos
+        assert built_env["MIRA_MCP_DELEGATION_SECRET"] == "override_mcp_secret_legitimo_de_prueba_32b"
+        assert built_env["SQLITE_DB_PATH"] == "/tmp/test_custom.db"
+
+        # Variables prohibidas y arbitrarias descartadas
+        assert "GEMINI_API_KEY" not in built_env
+        assert "intento_de_inyeccion_gemini_key" not in built_env.values()
+        assert "VITE_CUSTOM" not in built_env
+        assert "VARIABLE_ARBITRARIA" not in built_env
+
+    def test_build_mcp_subprocess_env_propagates_rag_variables_and_excludes_gemini_key(self):
+        """Verifica la propagación de EMBEDDING_MAX_SEQ_LENGTH, RAG_MODO_BUSQUEDA y RAG_BM25_PREFIJO,
+        asegurando que GEMINI_API_KEY continúe estrictamente excluida."""
+        from backend.app.config import Settings
+        from backend.mcp.client import build_mcp_subprocess_env
+
+        settings = Settings(
+            JWT_SECRET="clave_de_desarrollo_segura_32_bytes_min_xyz",
+            MIRA_MCP_DELEGATION_SECRET="clave_mcp_delegation_32_bytes_min_segura",
+        )
+        base_environ = {
+            "PATH": "/usr/bin",
+            "EMBEDDING_MAX_SEQ_LENGTH": "512",
+            "RAG_MODO_BUSQUEDA": "hibrido",
+            "RAG_BM25_PREFIJO": "bm25_doc_",
+            "GEMINI_API_KEY": "AIzaSySecretDoNotLeak12345",
+            "GOOGLE_API_KEY": "AIzaSyGoogleKeySecret67890",
+        }
+
+        # 1. Verificación desde base_environ
+        built_env = build_mcp_subprocess_env(settings=settings, base_environ=base_environ)
+
+        assert built_env["EMBEDDING_MAX_SEQ_LENGTH"] == "512"
+        assert built_env["RAG_MODO_BUSQUEDA"] == "hibrido"
+        assert built_env["RAG_BM25_PREFIJO"] == "bm25_doc_"
+        assert "GEMINI_API_KEY" not in built_env
+        assert "GOOGLE_API_KEY" not in built_env
+        assert "AIzaSySecretDoNotLeak12345" not in built_env.values()
+
+        # 2. Verificación cuando se pasan como overrides en extra_env
+        extra_env = {
+            "EMBEDDING_MAX_SEQ_LENGTH": "256",
+            "RAG_MODO_BUSQUEDA": "vectorial",
+            "RAG_BM25_PREFIJO": "custom_prefix_",
+            "GEMINI_API_KEY": "intento_inyeccion_extra_env",
+        }
+        built_env_extra = build_mcp_subprocess_env(settings=settings, base_environ={}, extra_env=extra_env)
+
+        assert built_env_extra["EMBEDDING_MAX_SEQ_LENGTH"] == "256"
+        assert built_env_extra["RAG_MODO_BUSQUEDA"] == "vectorial"
+        assert built_env_extra["RAG_BM25_PREFIJO"] == "custom_prefix_"
+        assert "GEMINI_API_KEY" not in built_env_extra
+        assert "intento_inyeccion_extra_env" not in built_env_extra.values()

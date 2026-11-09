@@ -54,7 +54,7 @@ class Settings(BaseSettings):
         description="Ruta al archivo de base de datos SQLite hidratado desde el kit",
     )
     CHROMADB_PATH: str = Field(
-        default="backend/rag/chroma_db",
+        default="backend/data/chroma_db",
         description="Ruta al directorio de persistencia de ChromaDB",
     )
     CORPUS_DIR: str = Field(

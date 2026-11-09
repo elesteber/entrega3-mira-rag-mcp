@@ -11,13 +11,36 @@ from backend.app.config import Settings, get_settings
 class TestSettings:
     """Verifica la carga, validación y comportamiento de la configuración."""
 
+    @pytest.fixture(autouse=True)
+    def clean_config_env(self, monkeypatch):
+        """Aísla las pruebas de configuración frente a variables residuales en os.environ dejadas por otros módulos."""
+        for var in [
+            "SQLITE_DB_PATH",
+            "JWT_SECRET",
+            "MIRA_MCP_DELEGATION_SECRET",
+            "ENVIRONMENT",
+            "BACKEND_HOST",
+            "BACKEND_PORT",
+            "CORS_ORIGINS",
+            "CHROMADB_PATH",
+            "CORPUS_DIR",
+            "EXCEL_DATA_PATH",
+            "GEMINI_MODEL",
+            "GEMINI_API_KEY",
+            "LOG_LEVEL",
+        ]:
+            monkeypatch.delenv(var, raising=False)
+        get_settings.cache_clear()
+        yield
+        get_settings.cache_clear()
+
     def test_default_settings_values(self):
         settings = Settings()
         assert settings.ENVIRONMENT == "development"
         assert settings.BACKEND_HOST == "127.0.0.1"
         assert settings.BACKEND_PORT == 8000
         assert settings.SQLITE_DB_PATH == "backend/data/mira_cu3.db"
-        assert settings.CHROMADB_PATH == "backend/rag/chroma_db"
+        assert settings.CHROMADB_PATH == "backend/data/chroma_db"
         assert settings.CORPUS_DIR == "archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus"
         assert settings.EXCEL_DATA_PATH == "archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/datos/CU-3_datos.xlsx"
         assert settings.GEMINI_MODEL == "gemini-3.8-flash"
