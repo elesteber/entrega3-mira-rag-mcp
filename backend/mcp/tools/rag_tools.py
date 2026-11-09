@@ -13,7 +13,15 @@ asistente se abstuviera en silencio por un problema de configuración.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Literal
+
+logger = logging.getLogger(__name__)
+
+MENSAJE_INDICE_NO_DISPONIBLE = (
+    "Índice RAG no disponible: ejecute 'uv run python -m backend.rag.index_corpus' "
+    "antes de levantar el servidor MCP."
+)
 
 
 class IndiceRagNoDisponible(RuntimeError):
@@ -32,15 +40,17 @@ def buscar_reglas(
     Con filtro_vigencia='vigente' excluye normas derogadas; 'todas' las incluye para comparar versiones (PR-4).
     Una lista de resultados vacía indica que no hay evidencia en el corpus (PR-3).
     """
-    from backend.rag import retriever
-
     try:
+        # El import también va aquí: si falta una dependencia del RAG (chromadb,
+        # sentence-transformers) se informa igual que un índice ausente.
+        from backend.rag import retriever
+
         recuperador = retriever.obtener_recuperador()
-    except Exception as err:  # colección inexistente o directorio sin índice
-        raise IndiceRagNoDisponible(
-            "Índice RAG no disponible: ejecute 'uv run python -m backend.rag.index_corpus' "
-            f"antes de levantar el servidor MCP ({type(err).__name__}: {err})."
-        ) from err
+    except Exception:  # dependencia ausente, colección inexistente o directorio sin índice
+        # El detalle (rutas, tipo de excepción) queda solo en el log del servidor (stderr);
+        # el cliente MCP recibe un mensaje fijo, sin datos internos.
+        logger.error("No se pudo abrir el índice RAG.", exc_info=True)
+        raise IndiceRagNoDisponible(MENSAJE_INDICE_NO_DISPONIBLE) from None
 
     del recuperador  # buscar_reglas reutiliza la instancia ya cacheada
     return retriever.buscar_reglas(query, top_k=top_k, filtro_vigencia=filtro_vigencia)

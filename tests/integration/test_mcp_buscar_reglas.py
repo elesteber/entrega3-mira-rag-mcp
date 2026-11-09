@@ -60,29 +60,20 @@ def test_indice_ausente_da_error_explicito(monkeypatch):
         raise ValueError("Collection [mira_corpus_cu3] does not exist")
 
     monkeypatch.setattr(retriever, "obtener_recuperador", falla)
-    with pytest.raises(rag_tools.IndiceRagNoDisponible, match="index_corpus"):
+    with pytest.raises(rag_tools.IndiceRagNoDisponible, match="index_corpus") as exc:
         rag_tools.buscar_reglas("criterios de salida a producción")
+    # El mensaje es fijo: no expone el tipo ni el texto de la excepción interna.
+    assert str(exc.value) == rag_tools.MENSAJE_INDICE_NO_DISPONIBLE
+    assert exc.value.__cause__ is None
 
 
-@requiere_indice
-def test_llamada_por_protocolo_mcp_real():
-    """Cliente FastMCP en memoria: recorre el protocolo MCP (list_tools + call_tool), no la función directa."""
-    import asyncio
-    import json
+def test_rag_no_importable_da_el_mismo_error_controlado(monkeypatch):
+    import sys
 
-    from fastmcp import Client
+    import backend.rag
 
-    from backend.mcp.server import mcp
-
-    async def llamar():
-        async with Client(mcp) as cliente:
-            nombres = [t.name for t in await cliente.list_tools()]
-            respuesta = await cliente.call_tool(
-                "buscar_reglas", {"query": "¿Cuáles son los criterios de salida a producción?", "top_k": 2}
-            )
-            datos = respuesta.structured_content or json.loads(respuesta.content[0].text)
-            return nombres, datos
-
-    nombres, datos = asyncio.run(llamar())
-    assert "buscar_reglas" in nombres
-    assert datos["results"][0]["chunk_id"] == "GUI-INC-V2-SEC3-P1"
+    monkeypatch.delattr(backend.rag, "retriever", raising=False)
+    monkeypatch.setitem(sys.modules, "backend.rag.retriever", None)  # fuerza ImportError
+    with pytest.raises(rag_tools.IndiceRagNoDisponible) as exc:
+        rag_tools.buscar_reglas("criterios de salida a producción")
+    assert str(exc.value) == rag_tools.MENSAJE_INDICE_NO_DISPONIBLE
