@@ -91,11 +91,17 @@ def validate_user_access_to_org(
     - U-I1/U-I2 (ejecutivos): Solo acceden a organizaciones asignadas (U-I1: ORG-05, ORG-07; U-I2: ORG-06, ORG-08).
     - U-I3 (jefa): Acceso global.
     """
-    uid = usuario_id or get_current_user_id()
+    uid = get_current_user_id()
     if not uid:
         raise McpSecurityError(
             message="Acceso denegado: Se requiere sesión de usuario autenticada para consultar datos organizacionales.",
             code="UNAUTHENTICATED_SESSION",
+        )
+
+    if usuario_id is not None and usuario_id != uid:
+        raise McpSecurityError(
+            message="El argumento usuario_id discrepa de la identidad autenticada.",
+            code="USER_IDENTITY_MISMATCH",
         )
 
     user_info = get_user_info(uid, conn=conn)
