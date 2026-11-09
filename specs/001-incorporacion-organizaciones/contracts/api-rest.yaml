@@ -264,6 +264,11 @@ components:
           type: string
           nullable: true
           example: ORG-05
+        organization_context_is_explicit:
+          type: boolean
+          default: false
+          description: Indica si organization_context fue seleccionado explícitamente en la interfaz de usuario (true) o asignado implícitamente por el sistema (false).
+          example: false
         conversation_history:
           type: array
           items:
@@ -305,7 +310,7 @@ components:
           enum: [COMPLETA, PARCIAL, ABSTENCION, CONFLICTO_FUENTES]
           description: Estado cualitativo de la evidencia encontrada (PR-2, PR-3, PR-4).
         action_proposal:
-          $ref: '#/components/schemas/ActionProposal'
+          $ref: '#/components/schemas/ActionDraft'
           nullable: true
 
     Citation:
@@ -376,6 +381,39 @@ components:
         error:
           type: string
           nullable: true
+
+    ActionDraft:
+      type: object
+      required:
+        - action_type
+        - tarea_id
+        - org_id
+        - estado_actual
+        - estado_propuesto
+        - justificacion
+      properties:
+        action_type:
+          type: string
+          enum: [CAMBIO_ESTADO_TAREA]
+          example: CAMBIO_ESTADO_TAREA
+        tarea_id:
+          type: string
+          example: T-006
+        org_id:
+          type: string
+          example: ORG-05
+        estado_actual:
+          type: string
+          enum: [pendiente, en_curso, completada]
+          example: en_curso
+        estado_propuesto:
+          type: string
+          enum: [pendiente, en_curso, completada]
+          example: completada
+        justificacion:
+          type: string
+          description: Motivo o respaldo para el cambio propuesto.
+          example: "Se habilitó carpeta SFTP compartida y se verificó recepción de archivos según REQ-INT §4.1."
 
     ActionProposal:
       type: object

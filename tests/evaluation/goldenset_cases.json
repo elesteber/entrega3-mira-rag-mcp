@@ -1,0 +1,378 @@
+{
+  "nombre": "Golden set MIRA CU-3 · Incorporación de organizaciones",
+  "version_golden_set": "1.0",
+  "fecha": "2026-11-07",
+  "autor": "Ángel Salgado (RAG + evaluación)",
+  "estado_validacion": "PENDIENTE DE VALIDACIÓN por el representante del cliente (pauta §7.1)",
+  "corpus": "archivos-base/Kit_Entrega_3_MIRA/CU-3_incorporacion_organizaciones/corpus/",
+  "notas": [
+    "Fijado en Git ANTES de la primera ejecución completa del pipeline (pauta §7.1, constitución).",
+    "Cada fragmento esperado se identifica con doc_code, versión, sección y un 'ancla': cita literal que existe una sola vez en el corpus. Un fragmento recuperado cuenta como acierto de Recall@k si pertenece al mismo documento y versión y contiene el ancla (comparación con espacios normalizados). Así la métrica es a nivel de fragmento y no depende de la estrategia de chunking.",
+    "Las preguntas de tipo 'conflicto_documento_datos' son adicionales a la composición mínima: requieren MCP y no entran en Recall@k."
+  ],
+  "composicion_minima": {
+    "con_respuesta": 12,
+    "sin_respuesta": 4,
+    "conflicto_vigente": 2,
+    "cambio_version": 2
+  },
+  "casos": [
+    {
+      "id": "GS-01",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Cuáles son los criterios que debe cumplir una organización para pasar a producción?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v2.0",
+          "section": "§3",
+          "ancla": "Una organización pasa a producción solo si se cumplen todos los criterios siguientes"
+        }
+      ],
+      "respuesta_esperada": "Seis criterios, todos obligatorios: (1) tareas obligatorias de E0 a E4 completadas; (2) integración probada con éxito en el ambiente de integración; (3) umbrales aprobados por dos supervisores de la organización; (4) autorización de transferencia internacional firmada si el proveedor de modelos procesa datos fuera del país; (5) autorización de datos biométricos firmada si la plantilla incluye módulos biométricos; (6) todos los formularios propios en estado «operativo». Cita GUI-INC v2 §3."
+    },
+    {
+      "id": "GS-02",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Qué tareas puede marcar como completadas un ejecutivo de implementación?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v2.0",
+          "section": "§4",
+          "ancla": "Un ejecutivo puede marcar como completadas las tareas de las etapas E0 a E4 de sus organizaciones"
+        }
+      ],
+      "respuesta_esperada": "Solo las tareas de las etapas E0 a E4 de las organizaciones que tiene asignadas; la tarea de salida a producción (E5) la marca solo el jefe de implementación. Cita GUI-INC v2 §4."
+    },
+    {
+      "id": "GS-03",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Qué módulos incluye la plantilla de apertura de cuenta y a qué industria corresponde?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "FIC-PLA",
+          "version": "v1.0",
+          "section": "§2 (PLA-CTA)",
+          "ancla": "Módulos: extracción de campos, comparación de rostros, prueba de vida, lectura de códigos."
+        }
+      ],
+      "respuesta_esperada": "PLA-CTA es de la industria banca e incluye extracción de campos, comparación de rostros, prueba de vida y lectura de códigos. Cita FIC-PLA v1 §2 (PLA-CTA)."
+    },
+    {
+      "id": "GS-04",
+      "tipo": "con_respuesta",
+      "pregunta": "¿La plantilla de admisión clínica requiere autorización de tratamiento de datos biométricos?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "FIC-PLA",
+          "version": "v1.0",
+          "section": "§2 (PLA-ADM)",
+          "ancla": "adaptación: 4. - Requiere autorización de tratamiento de datos biométricos."
+        }
+      ],
+      "respuesta_esperada": "Sí. PLA-ADM (salud) incluye comparación de rostros y la ficha indica que requiere autorización de tratamiento de datos biométricos. Cita FIC-PLA v1 §2 (PLA-ADM)."
+    },
+    {
+      "id": "GS-05",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Qué modos de integración técnica existen y cuál es el modo por defecto?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "REQ-INT",
+          "version": "v2.0",
+          "section": "§1",
+          "ancla": "Modo por defecto."
+        }
+      ],
+      "respuesta_esperada": "Tres modos: interfaz de programación asincrónica (modo por defecto, con llamada de vuelta), interfaz sincrónica (solo documentos livianos) e intercambio de archivos (ciclos de 30 minutos). Cita REQ-INT v2 §1."
+    },
+    {
+      "id": "GS-06",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Cuándo se considera probada una integración?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "REQ-INT",
+          "version": "v2.0",
+          "section": "§5",
+          "ancla": "envía al menos 20 casos de ejemplo en el ambiente de integración"
+        }
+      ],
+      "respuesta_esperada": "Cuando la organización envía al menos 20 casos de ejemplo en el ambiente de integración y recibe la llamada de vuelta de todos sin errores, sin superar cien llamadas por minuto durante la carga de prueba. Cita REQ-INT v2 §5."
+    },
+    {
+      "id": "GS-07",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Cuál es el límite general de llamadas por minuto de una organización y qué pasa si lo supera?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "REQ-INT",
+          "version": "v2.0",
+          "section": "§3",
+          "ancla": "El límite general es de mil llamadas por minuto por organización"
+        }
+      ],
+      "respuesta_esperada": "Mil llamadas por minuto por organización en todos los ambientes; las llamadas que superan el límite se encolan. Cita REQ-INT v2 §3."
+    },
+    {
+      "id": "GS-08",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Cuántos ejemplos de un formulario propio debe entregar la organización y cuánto tarda su ajuste?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "POL-FOR",
+          "version": "v1.0",
+          "section": "§2",
+          "ancla": "La organización entrega entre 20 y 30 ejemplos del formulario"
+        }
+      ],
+      "respuesta_esperada": "Entre 20 y 30 ejemplos con datos personales enmascarados; el ajuste de lectura toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos. Cita POL-FOR v1 §2."
+    },
+    {
+      "id": "GS-09",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Qué pasa con los casos que incluyen un formulario propio que todavía no está operativo?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "POL-FOR",
+          "version": "v1.0",
+          "section": "§3",
+          "ancla": "se derivan a revisión asistida con la razón «formulario propio en ajuste»"
+        }
+      ],
+      "respuesta_esperada": "Se derivan a revisión asistida con la razón «formulario propio en ajuste». Cita POL-FOR v1 §3."
+    },
+    {
+      "id": "GS-10",
+      "tipo": "con_respuesta",
+      "pregunta": "¿En qué etapa se hace la prueba de integración y en qué días hábiles desde la firma?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v2.0",
+          "section": "§2",
+          "ancla": "| E3. Integración | Conexión con los sistemas de la organización y prueba en el ambiente de integración | Días 1 a 8 |"
+        }
+      ],
+      "respuesta_esperada": "En la etapa E3 (Integración), entre los días hábiles 1 y 8 desde la firma. Cita GUI-INC v2 §2."
+    },
+    {
+      "id": "GS-11",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Cuántos días hábiles de adaptación se estiman para la plantilla de siniestro automotriz?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "FIC-PLA",
+          "version": "v1.0",
+          "section": "§2 (PLA-SIN)",
+          "ancla": "Días hábiles estimados de adaptación: 5."
+        }
+      ],
+      "respuesta_esperada": "Cinco días hábiles (PLA-SIN). Cita FIC-PLA v1 §2 (PLA-SIN)."
+    },
+    {
+      "id": "GS-12",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Se pueden usar datos reales de la organización en el ambiente de integración?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "REQ-INT",
+          "version": "v2.0",
+          "section": "§4",
+          "ancla": "Ningún dato real de la organización se usa fuera de producción"
+        }
+      ],
+      "respuesta_esperada": "No, salvo autorización expresa y con los datos personales enmascarados; el ambiente de integración se alimenta con casos de ejemplo provistos por DPRIME. Cita REQ-INT v2 §4."
+    },
+    {
+      "id": "GS-13",
+      "tipo": "con_respuesta",
+      "pregunta": "¿Cómo se manejan las credenciales de las integraciones de sistema?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "REQ-INT",
+          "version": "v2.0",
+          "section": "§2",
+          "ancla": "Las integraciones de sistema usan credenciales propias por ambiente, que se almacenan cifradas."
+        }
+      ],
+      "respuesta_esperada": "Usan credenciales propias por ambiente, almacenadas cifradas. Cita REQ-INT v2 §2."
+    },
+    {
+      "id": "GS-14",
+      "tipo": "sin_respuesta",
+      "pregunta": "¿Cuál es la tarifa por llamada excedente cuando una organización supera el límite de llamadas?",
+      "debe_responder": false,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [],
+      "respuesta_esperada": "Abstención. REQ-INT v2 §3 solo dice que las llamadas sobre el límite se encolan; ningún documento del corpus CU-3 define tarifas. Falta un documento comercial o de tarifas.",
+      "notas": "Trampa: el tema (límite de llamadas) sí está en el corpus, el dato pedido (tarifa) no."
+    },
+    {
+      "id": "GS-15",
+      "tipo": "sin_respuesta",
+      "pregunta": "¿Cuántos días hábiles de adaptación necesita la plantilla de créditos de consumo?",
+      "debe_responder": false,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [],
+      "respuesta_esperada": "Abstención. FIC-PLA v1 §2 solo describe PLA-REM, PLA-SIN, PLA-CTA y PLA-ADM; no existe una plantilla de créditos de consumo en el corpus.",
+      "notas": "Trampa: pregunta con la misma forma que GS-11 sobre una plantilla inexistente."
+    },
+    {
+      "id": "GS-16",
+      "tipo": "sin_respuesta",
+      "pregunta": "¿Por cuánto tiempo es válida la autorización de transferencia internacional de datos una vez firmada?",
+      "debe_responder": false,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [],
+      "respuesta_esperada": "Abstención. GUI-INC v2 §3 exige la autorización firmada cuando el proveedor procesa datos fuera del país, pero ningún documento define su vigencia. Falta la política de transferencia internacional de datos."
+    },
+    {
+      "id": "GS-17",
+      "tipo": "sin_respuesta",
+      "pregunta": "¿Qué modelo de red neuronal usa el módulo de comparación de rostros?",
+      "debe_responder": false,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [],
+      "respuesta_esperada": "Abstención. FIC-PLA solo nombra el módulo de comparación de rostros; el corpus no describe la arquitectura interna de los modelos."
+    },
+    {
+      "id": "GS-18",
+      "tipo": "conflicto_vigente",
+      "pregunta": "¿Una organización necesita entregar ejemplos de sus documentos para que MIRA los reconozca?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "FIC-PLA",
+          "version": "v1.0",
+          "section": "§1",
+          "ancla": "Todas las plantillas reconocen desde el primer día cualquier documento del proceso, sin necesidad de ejemplos de la organización."
+        },
+        {
+          "doc_code": "POL-FOR",
+          "version": "v1.0",
+          "section": "§2",
+          "ancla": "La organización entrega entre 20 y 30 ejemplos del formulario"
+        }
+      ],
+      "respuesta_esperada": "Presenta ambas fuentes vigentes y su alcance distinto: FIC-PLA v1 §1 hace una afirmación general (las plantillas reconocen desde el primer día cualquier documento del proceso, sin ejemplos de la organización); POL-FOR v1 §2 fija un requisito específico para los formularios propios (entre 20 y 30 ejemplos para dejarlos operativos). Debe responder que, para un formulario propio, sí se exigen ejemplos según POL-FOR, y advertir que la redacción absoluta de FIC-PLA («cualquier documento») es inconsistente con ese requisito si el formulario propio se considera documento del proceso. No debe afirmar que toda excepción sea una contradicción ni elegir una fuente descartando la otra: señala la posible inconsistencia para que la confirme una persona.",
+      "notas": "Tensión entre una afirmación general (FIC-PLA) y un requisito específico (POL-FOR), ambos vigentes. POL-FOR §1 define el formulario propio como distinto de los documentos estándar; el conflicto existe porque FIC-PLA dice «cualquier documento del proceso». Ajustado según revisión del PR #8."
+    },
+    {
+      "id": "GS-19",
+      "tipo": "conflicto_vigente",
+      "pregunta": "¿Puede una organización con un formulario propio estar en producción dentro de diez días hábiles desde la firma?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v2.0",
+          "section": "§1",
+          "ancla": "estar en producción dentro de diez días hábiles desde la firma"
+        },
+        {
+          "doc_code": "POL-FOR",
+          "version": "v1.0",
+          "section": "§2",
+          "ancla": "El ajuste de lectura toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos."
+        }
+      ],
+      "respuesta_esperada": "Responde de forma condicional, presentando ambas fuentes vigentes: GUI-INC v2 §1 fija como meta estar en producción dentro de diez días hábiles desde la firma, y GUI-INC v2 §3 (criterio 6) exige que todos los formularios propios estén «operativos» para pasar a producción; POL-FOR v1 §2 indica que el ajuste de un formulario propio toma entre 10 y 15 días hábiles desde que se reciben los ejemplos completos. Debe explicar que la meta solo es alcanzable si los ejemplos completos se entregan al firmar y el ajuste toma el mínimo de 10 días; si los ejemplos llegan después o el ajuste se extiende, la meta no se cumple. No debe afirmar que siempre es imposible, sino señalar el conflicto de planificación para que lo gestione una persona.",
+      "notas": "Conflicto de planificación entre dos documentos vigentes del kit: la meta de diez días (GUI-INC) y la duración del ajuste (POL-FOR) solo son compatibles en el mejor caso. Ajustado según revisión del PR #8."
+    },
+    {
+      "id": "GS-20",
+      "tipo": "cambio_version",
+      "pregunta": "¿Cuánto tiempo toma la incorporación completa de una organización según la guía?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v2.0",
+          "section": "§1",
+          "ancla": "estar en producción dentro de diez días hábiles desde la firma"
+        }
+      ],
+      "fragmentos_derogados_relacionados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v1.0",
+          "section": "§1",
+          "ancla": "La incorporación completa toma entre seis y ocho semanas desde la firma."
+        }
+      ],
+      "respuesta_esperada": "Según la versión vigente (GUI-INC v2 §1), la meta es estar en producción dentro de diez días hábiles desde la firma. Indica que la versión 1, derogada desde el 1 de septiembre de 2026, establecía entre seis y ocho semanas."
+    },
+    {
+      "id": "GS-21",
+      "tipo": "cambio_version",
+      "pregunta": "¿Quién autoriza que una organización pase a producción?",
+      "debe_responder": true,
+      "requiere_mcp": false,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v2.0",
+          "section": "§4",
+          "ancla": "La tarea de salida a producción (E5) solo la marca el jefe de implementación."
+        }
+      ],
+      "fragmentos_derogados_relacionados": [
+        {
+          "doc_code": "GUI-INC",
+          "version": "v1.0",
+          "section": "§2",
+          "ancla": "La organización pasa a producción cuando el ingeniero a cargo da su conformidad."
+        }
+      ],
+      "respuesta_esperada": "Según la versión vigente (GUI-INC v2 §4), solo el jefe de implementación marca la tarea de salida a producción (E5), y solo si se cumplen los criterios de GUI-INC v2 §3. Indica que en la versión 1 derogada bastaba la conformidad del ingeniero a cargo."
+    },
+    {
+      "id": "GS-22",
+      "tipo": "conflicto_documento_datos",
+      "pregunta": "¿Cuál es el umbral de aprobación de la plantilla de admisión clínica?",
+      "debe_responder": true,
+      "requiere_mcp": true,
+      "fragmentos_esperados": [
+        {
+          "doc_code": "FIC-PLA",
+          "version": "v1.0",
+          "section": "§2 (PLA-ADM)",
+          "ancla": "documento de previsión de salud, ficha de ingreso."
+        }
+      ],
+      "respuesta_esperada": "Expone la discrepancia sin elegir: la ficha FIC-PLA v1 §2 (PLA-ADM) sugiere aprobación 85 y revisión 60, mientras que el registro de PLA-ADM en la tabla de plantillas (vía MCP listar_plantillas) tiene umbral_aprobacion_sugerido = 80 (hoja plantillas de CU-3_datos.xlsx, ver docs/auditoria-fuentes.md §2.1). No modifica ningún dato.",
+      "notas": "Adicional a la composición mínima. Conflicto documento vs datos, no entre dos documentos; no cuenta para Recall@k de conflicto vigente."
+    }
+  ]
+}

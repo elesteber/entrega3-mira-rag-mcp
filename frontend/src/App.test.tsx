@@ -1,0 +1,442 @@
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import App from './App'
+import * as api from './services/api'
+import type { SimulatedUser, SessionTokenResponse, ChatResponse } from './types'
+
+describe('App Component (T023 / T054)', () => {
+  const mockUsers: SimulatedUser[] = [
+    {
+      usuario_id: 'U-I1',
+      nombre: 'Elena Morales',
+      rol: 'ejecutivo_implementacion',
+      orgs_asignadas: ['ORG-05', 'ORG-07'],
+    },
+    {
+      usuario_id: 'U-I2',
+      nombre: 'Carlos Ruiz',
+      rol: 'ejecutivo_implementacion',
+      orgs_asignadas: ['ORG-06'],
+    },
+  ]
+
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    vi.spyOn(api, 'listUsers').mockResolvedValue(mockUsers)
+    vi.spyOn(api, 'switchSession').mockImplementation(async (userId: string): Promise<SessionTokenResponse> => {
+      const user = mockUsers.find((u) => u.usuario_id === userId) || mockUsers[0]
+      return {
+        session_token: `mock-token-${user.usuario_id}`,
+        user,
+        expires_at: '2026-11-07T23:59:59Z',
+      }
+    })
+  })
+
+  it('renderiza el título del asistente', async () => {
+    render(<App />)
+    expect(screen.getByText('MIRA · Asistente de incorporación')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+  })
+
+  it('muestra el aviso visible de datos simulados en modo mock', async () => {
+    render(<App />)
+    expect(screen.getByText('Datos simulados')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+  })
+
+  it('renderiza el layout de dos columnas con SessionSelector, ChatInterface y el panel reservado Trazas MCP', async () => {
+    render(<App />)
+
+    // Selector de sesión accesible
+    expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toBeInTheDocument()
+
+    // Panel reservado a la derecha
+    expect(screen.getByRole('heading', { level: 2, name: 'Trazas MCP' })).toBeInTheDocument()
+    expect(screen.getByText('Aún sin consultas')).toBeInTheDocument()
+
+    // ChatInterface a la izquierda con preguntas de ejemplo
+    await waitFor(() => {
+      expect(screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')).toBeInTheDocument()
+    })
+  })
+
+  it('al cambiar la sesión se limpia la conversación del chat y las trazas MCP', async () => {
+    const user = userEvent.setup()
+    const mockChatResponse: ChatResponse = {
+      answer: 'Respuesta de prueba sobre ORG-07',
+      citations: [
+        {
+          chunk_id: 'GUI-INC_v2#sec3_1',
+          doc_code: 'GUI-INC_v2',
+          doc_title: 'Guía de Incorporación',
+          section: '§3.1',
+          version: 'v2',
+          status: 'vigente',
+          excerpt: 'Requisitos de salida a producción.',
+        },
+      ],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [
+        {
+          tool_name: 'consultar_integracion',
+          parameters: { org_id: 'ORG-07' },
+          response_summary: 'Telemetría OK',
+          execution_time_ms: 14.2,
+          success: true,
+        },
+      ],
+      action_proposal: null,
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockChatResponse)
+
+    render(<App />)
+
+    // Esperar inicialización con U-I1
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    // Interactuar con el chat (hacer clic en la primera pregunta de ejemplo)
+    const exampleQuestion = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(exampleQuestion)
+
+    // Verificar que la respuesta se despliega con su cita documental
+    await waitFor(() => {
+      expect(screen.getByText('Respuesta de prueba sobre ORG-07')).toBeInTheDocument()
+      expect(screen.getByText('GUI-INC_v2')).toBeInTheDocument()
+    })
+
+    // Verificar que el panel de trazas MCP se actualizó con la traza de la respuesta
+    await waitFor(() => {
+      expect(screen.getByText('consultar_integracion')).toBeInTheDocument()
+      expect(screen.getByText('14,2 ms')).toBeInTheDocument()
+    })
+
+    // Cambiar sesión a U-I2
+    const select = screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })
+    await user.selectOptions(select, 'U-I2')
+
+    // Al cambiar la sesión, el chat y las trazas deben haberse limpiado
+    await waitFor(() => {
+      expect(screen.queryByText('Respuesta de prueba sobre ORG-07')).not.toBeInTheDocument()
+      expect(screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')).toBeInTheDocument()
+      expect(screen.getByText('Aún sin consultas')).toBeInTheDocument()
+      expect(screen.queryByText('consultar_integracion')).not.toBeInTheDocument()
+    })
+  })
+
+  it('abre el modal de confirmación de acción cuando la respuesta del chat contiene una action_proposal', async () => {
+    const user = userEvent.setup()
+    const mockProposalChatResponse: ChatResponse = {
+      answer: 'Propuesta generada para completar T-006',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Se verificó recepción SFTP.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockProposalChatResponse)
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    // Modal debe abrirse automáticamente con la propuesta
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+      expect(screen.getByText('T-006')).toBeInTheDocument()
+      expect(screen.getByText('Se verificó recepción SFTP.')).toBeInTheDocument()
+    })
+  })
+
+  it('invalida respuestas pendientes al cambiar de sesión y no actualiza trazas, mensajes ni modal', async () => {
+    const user = userEvent.setup()
+    let resolveDeferredChat!: (value: ChatResponse) => void
+    const deferredChatPromise = new Promise<ChatResponse>((resolve) => {
+      resolveDeferredChat = resolve
+    })
+
+    const sendChatSpy = vi.spyOn(api, 'sendChat').mockImplementation(() => deferredChatPromise)
+
+    render(<App />)
+
+    // Esperar inicialización en U-I1
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    // Enviar consulta como U-I1 usando una pregunta de ejemplo
+    const exampleQuestion = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(exampleQuestion)
+
+    expect(sendChatSpy).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/El asistente está respondiendo…/i)).toBeInTheDocument()
+
+    // Cambiar de sesión a U-I2 antes de que la promesa se resuelva
+    const select = screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })
+    await user.selectOptions(select, 'U-I2')
+
+    await waitFor(() => {
+      expect(select).toHaveValue('U-I2')
+    })
+
+    // Resolver la promesa diferida de la consulta enviada en la sesión anterior
+    const staleResponse: ChatResponse = {
+      answer: 'Respuesta diferida obsoleta de U-I1',
+      citations: [
+        {
+          chunk_id: 'GUI-INC_v2#sec3_1',
+          doc_code: 'GUI-INC_v2',
+          doc_title: 'Guía de Incorporación',
+          section: '§3.1',
+          version: 'v2',
+          status: 'vigente',
+          excerpt: 'Requisitos de salida a producción.',
+        },
+      ],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [
+        {
+          tool_name: 'consultar_integracion',
+          parameters: { org_id: 'ORG-07' },
+          response_summary: 'Telemetría obsoleta de U-I1',
+          execution_time_ms: 10.0,
+          success: true,
+        },
+      ],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Acción obsoleta que no debe abrirse en la sesión nueva',
+      },
+    }
+
+    resolveDeferredChat(staleResponse)
+
+    // Dar tiempo para que cualquier microtarea o callback pendiente se procese
+    await new Promise((r) => setTimeout(r, 50))
+
+    // En la sesión nueva no se agregan mensajes, trazas ni modal
+    expect(screen.queryByText('Respuesta diferida obsoleta de U-I1')).not.toBeInTheDocument()
+    expect(screen.queryByText('Telemetría obsoleta de U-I1')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('Aún sin consultas')).toBeInTheDocument()
+  })
+
+  it('flujo interactivo completo: Chat emite ActionDraft -> Modal -> Preparar -> Confirmar -> Notificación', async () => {
+    const user = userEvent.setup()
+    const mockDraftResponse: ChatResponse = {
+      answer: 'Propuesta lista para revisar',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-007',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Revisión técnica de intercambio completada.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockDraftResponse)
+
+    const prepareSpy = vi.spyOn(api, 'prepareAction').mockResolvedValue({
+      proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-007',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Revisión técnica de intercambio completada.',
+        confirmation_token: 'secret-token-e2e-never-leak',
+        expires_at: '2026-11-09T12:05:00Z',
+      },
+    })
+
+    const confirmSpy = vi.spyOn(api, 'confirmAction').mockResolvedValue({
+      success: true,
+      evento_id: 101,
+      tarea_id: 'T-007',
+      org_id: 'ORG-05',
+      nuevo_estado: 'completada',
+      usuario_id: 'U-I1',
+      justificacion: 'Revisión técnica de intercambio completada.',
+      fecha_cambio: '2026-11-09T12:01:00Z',
+    })
+
+    const { container } = render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    // Enviar consulta
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    // 1. Modal se abre automáticamente con los datos del ActionDraft
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+      expect(screen.getByText('T-007')).toBeInTheDocument()
+      expect(screen.getByText('Revisión técnica de intercambio completada.')).toBeInTheDocument()
+    })
+
+    // 2. Hacer clic en "Preparar acción"
+    const prepareBtn = screen.getByRole('button', { name: /preparar acción/i })
+    await user.click(prepareBtn)
+
+    await waitFor(() => {
+      expect(prepareSpy).toHaveBeenCalledTimes(1)
+      expect(screen.getByText(/Paso 1 completado: Acción preparada/i)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /confirmar y ejecutar/i })).toBeInTheDocument()
+    })
+
+    // 3. Verificar que el token NO se expone en el DOM
+    expect(container.innerHTML).not.toContain('secret-token-e2e-never-leak')
+
+    // 4. Hacer clic en "Confirmar y ejecutar"
+    const confirmBtn = screen.getByRole('button', { name: /confirmar y ejecutar/i })
+    await user.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(confirmSpy).toHaveBeenCalledWith('secret-token-e2e-never-leak', expect.any(AbortSignal))
+      expect(screen.getByText('¡Acción ejecutada y confirmada con éxito!')).toBeInTheDocument()
+    })
+
+    // 5. Cerrar modal y verificar notificación superior
+    const closeBtn = screen.getByRole('button', { name: /entendido y cerrar/i })
+    await user.click(closeBtn)
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Acción confirmada: Tarea T-007 actualizada a completada \(Evento #101\)\./i),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('cancelar en el modal descarta la propuesta sin mutación y permite reabrir desde el chat', async () => {
+    const user = userEvent.setup()
+    const mockDraftResponse: ChatResponse = {
+      answer: 'Propuesta generada para T-006',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Prueba de cancelación.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockDraftResponse)
+    const prepareSpy = vi.spyOn(api, 'prepareAction')
+    const confirmSpy = vi.spyOn(api, 'confirmAction')
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    // Modal se abre
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+    })
+
+    // Cancelar en el modal
+    const cancelBtn = screen.getByRole('button', { name: /cancelar/i })
+    await user.click(cancelBtn)
+
+    // Modal se cierra sin llamar a prepare ni confirm
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+      ).not.toBeInTheDocument()
+    })
+    expect(prepareSpy).not.toHaveBeenCalled()
+    expect(confirmSpy).not.toHaveBeenCalled()
+
+    // En el chat se puede presionar "Revisar propuesta" para volver a abrir el modal
+    const reviewBtn = screen.getByRole('button', { name: /revisar propuesta para la tarea t-006/i })
+    await user.click(reviewBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+      expect(screen.getByText('Prueba de cancelación.')).toBeInTheDocument()
+    })
+  })
+
+  it('cambiar de usuario mientras el modal está abierto descarta la propuesta y cierra el modal', async () => {
+    const user = userEvent.setup()
+    const mockDraftResponse: ChatResponse = {
+      answer: 'Propuesta para T-006',
+      citations: [],
+      evidence_status: 'COMPLETA',
+      mcp_traces: [],
+      action_proposal: {
+        action_type: 'CAMBIO_ESTADO_TAREA',
+        tarea_id: 'T-006',
+        org_id: 'ORG-05',
+        estado_actual: 'en_curso',
+        estado_propuesto: 'completada',
+        justificacion: 'Cambio de sesión descartará esto.',
+      },
+    }
+    vi.spyOn(api, 'sendChat').mockResolvedValue(mockDraftResponse)
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })).toHaveValue('U-I1')
+    })
+
+    const questionBtn = screen.getByText('¿Qué le falta a ORG-07 para pasar a producción?')
+    await user.click(questionBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /confirmación de acción requerida/i })).toBeInTheDocument()
+    })
+
+    // Cambiar de usuario a U-I2
+    const select = screen.getByRole('combobox', { name: /seleccionar usuario simulado/i })
+    await user.selectOptions(select, 'U-I2')
+
+    await waitFor(() => {
+      expect(select).toHaveValue('U-I2')
+      expect(
+        screen.queryByRole('heading', { name: /confirmación de acción requerida/i }),
+      ).not.toBeInTheDocument()
+    })
+  })
+})
