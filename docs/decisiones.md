@@ -18,6 +18,7 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - [ADR-10: Golden Set con Anclas Literales y Conflictos Vigentes del Corpus](#adr-10-golden-set-con-anclas-literales-y-conflictos-vigentes-del-corpus)
 - [ADR-11: Fragmentación por Encabezados, 256 Tokens y Búsqueda Híbrida](#adr-11-fragmentación-por-encabezados-256-tokens-y-búsqueda-híbrida)
 - [ADR-12: Delegación firmada por solicitud MCP stdio (AUD-03)](#adr-12-delegación-firmada-por-solicitud-mcp-stdio-aud-03)
+- [ADR-FE-01: Decisiones de Arquitectura Frontend, Manejo de Sesión y Mocks](#adr-fe-01-decisiones-de-arquitectura-frontend-manejo-de-sesión-y-mocks)
 
 ---
 
@@ -170,3 +171,24 @@ Este documento registra formalmente las decisiones de arquitectura (Architecture
 - **Alternativas:** Identidad declarada en argumentos (insegura); identidad fija por
   proceso (impide multiplexar usuarios); autenticación HTTP (no cubre stdio).
 - **Contrato y plan:** `docs/aud-03-auth-stdio.md`. Integración PR #17 pendiente.
+
+---
+
+### ADR-FE-01: Decisiones de Arquitectura Frontend, Manejo de Sesión y Mocks
+- **Fecha:** 2026-11-07
+- **Estado:** **Propuesta**
+- **Contexto:** Construcción del cliente HTTP, configuración de estilos, gestión de credenciales efímeras y estrategia de mocks de desarrollo para el frontend en React/Vite.
+- **Decisión:**
+  1. `VITE_API_URL` representa exclusivamente el origen base (ej. `http://localhost:8000`), debido a que las rutas contractuales de `contracts/api-rest.yaml` ya incorporan el prefijo `/api/...` (`/api/session/users`, `/api/chat`, etc.).
+  2. Uso de Tailwind CSS 3.4 conforme a lo especificado en `plan.md` y `tasks.md`, asegurando consistencia de utilidades y compatibilidad con el entorno de testing.
+  3. Almacenamiento de `session_token` únicamente en memoria (variable de módulo mediante `setSessionToken`/`getSessionToken`), sin persistencia en `localStorage` ni `sessionStorage`, y prohibición estricta de mostrar o imprimir `session_token` y `confirmation_token` en consola o en texto de interfaz (PR-7).
+  4. Implementación de respuestas simuladas en `frontend/src/services/mocks.ts` marcadas exhaustivamente con el comentario `// MOCK`, con extractos textuales literales del corpus oficial, y despliegue de un aviso visible permanente en la interfaz ("Datos simulados") mientras `VITE_USE_MOCKS === 'true'`.
+- **Justificación:**
+  1. Evita duplicación de prefijos en las URLs (`/api/api/...`) y desacopla el cliente de la topología de red.
+  2. Tailwind 3.4 proporciona estabilidad sin sobrecargar la configuración de Vite.
+  3. Previene fugas de credenciales en inspección de almacenamiento local y ataques XSS, alineándose con el principio de seguridad en sesión de PR-7.
+  4. Garantiza desarrollo y evaluación autónoma de la interfaz sin dependencia bloqueante del backend activo, asegurando total fidelidad a los datos del kit sin alucinaciones.
+- **Alternativas consideradas:**
+  1. Definir `VITE_API_URL=http://localhost:8000/api`: Descartada para evitar discrepancias con el contrato OpenAPI.
+  2. Guardar token en `localStorage`: Descartada por vulnerabilidad ante ataques de extracción de credenciales.
+  3. Mocks con bibliotecas externas pesadas (ej. MSW con service workers): Descartada en favor de una delegación funcional nativa en `mocks.ts` liviana y transparente.
