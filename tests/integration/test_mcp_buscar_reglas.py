@@ -77,3 +77,27 @@ def test_rag_no_importable_da_el_mismo_error_controlado(monkeypatch):
     with pytest.raises(rag_tools.IndiceRagNoDisponible) as exc:
         rag_tools.buscar_reglas("criterios de salida a producción")
     assert str(exc.value) == rag_tools.MENSAJE_INDICE_NO_DISPONIBLE
+
+
+def test_fallo_durante_la_busqueda_no_expone_detalles(monkeypatch):
+    monkeypatch.setattr(retriever, "obtener_recuperador", lambda: object())
+
+    def falla(*args, **kwargs):
+        raise RuntimeError("sqlite3.OperationalError en /home/usuario/secreto/chroma.sqlite3")
+
+    monkeypatch.setattr(retriever, "buscar_reglas", falla)
+    with pytest.raises(rag_tools.ErrorBusquedaRag) as exc:
+        rag_tools.buscar_reglas("criterios de salida a producción")
+    assert str(exc.value) == rag_tools.MENSAJE_ERROR_BUSQUEDA
+    assert exc.value.__cause__ is None
+
+
+def test_validacion_de_argumentos_se_informa_tal_cual(monkeypatch):
+    monkeypatch.setattr(retriever, "obtener_recuperador", lambda: object())
+
+    def valida(*args, **kwargs):
+        raise ValueError("top_k debe estar entre 1 y 10")
+
+    monkeypatch.setattr(retriever, "buscar_reglas", valida)
+    with pytest.raises(ValueError, match="top_k debe estar entre"):
+        rag_tools.buscar_reglas("criterios", top_k=99)

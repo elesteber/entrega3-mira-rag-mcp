@@ -24,8 +24,15 @@ MENSAJE_INDICE_NO_DISPONIBLE = (
 )
 
 
+MENSAJE_ERROR_BUSQUEDA = "No se pudo completar la búsqueda normativa en el índice RAG."
+
+
 class IndiceRagNoDisponible(RuntimeError):
     """El índice ChromaDB no fue generado o no se puede abrir."""
+
+
+class ErrorBusquedaRag(RuntimeError):
+    """El índice existe, pero la búsqueda falló (ChromaDB o modelo de embeddings)."""
 
 
 def buscar_reglas(
@@ -53,4 +60,12 @@ def buscar_reglas(
         raise IndiceRagNoDisponible(MENSAJE_INDICE_NO_DISPONIBLE) from None
 
     del recuperador  # buscar_reglas reutiliza la instancia ya cacheada
-    return retriever.buscar_reglas(query, top_k=top_k, filtro_vigencia=filtro_vigencia)
+    try:
+        return retriever.buscar_reglas(query, top_k=top_k, filtro_vigencia=filtro_vigencia)
+    except ValueError:
+        # Validación de argumentos (consulta vacía, top_k o filtro fuera de rango):
+        # su mensaje no expone datos internos y le sirve al modelo para corregir la llamada.
+        raise
+    except Exception:  # fallo de ChromaDB o del modelo de embeddings durante la búsqueda
+        logger.error("Falló la búsqueda en el índice RAG.", exc_info=True)
+        raise ErrorBusquedaRag(MENSAJE_ERROR_BUSQUEDA) from None
